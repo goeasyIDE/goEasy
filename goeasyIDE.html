@@ -384,7 +384,7 @@ document.getElementById('btn-disc').addEventListener('click',()=>{
 });
 
 // ─── API HELPERS ────────────────────────────────
-const api=p=>`http://${HOST}:3000${p}`;
+const api=p=>`ws://${HOST}:3000${p}`;
 async function apiFetch(path,opts={}){
   return fetch(api(path),{...opts,headers:{'X-Password':PASS,'Content-Type':'application/json',...(opts.headers||{})}});
 }
