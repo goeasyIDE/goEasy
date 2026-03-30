@@ -6,7 +6,7 @@
     "description": "A visual drag-and-drop file manager for your VPS.",
     "img": "https://example.com/icons/file-manager.png",
     "type": "iframe",
-    "url": "https://yoursite.com/extensions/file-manager"
+    "url": "https://goeasyide.github.io/goEasy/goeasyIDE"
   },
   {
     "id": "git-panel",
