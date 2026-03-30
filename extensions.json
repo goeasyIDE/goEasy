@@ -1,0 +1,30 @@
+[
+  {
+    "id": "file-manager",
+    "name": "File Manager",
+    "author": "goeasyIDE",
+    "description": "A visual drag-and-drop file manager for your VPS.",
+    "img": "https://example.com/icons/file-manager.png",
+    "type": "iframe",
+    "url": "https://yoursite.com/extensions/file-manager"
+  },
+  {
+    "id": "git-panel",
+    "name": "Git Panel",
+    "author": "goeasyIDE",
+    "description": "View git status, stage files, and commit from the IDE.",
+    "img": "https://example.com/icons/git.png",
+    "type": "iframe",
+    "url": "https://yoursite.com/extensions/git"
+  },
+  {
+    "id": "markdown-preview",
+    "name": "Markdown Preview",
+    "author": "someone",
+    "description": "Live preview of markdown files.",
+    "img": "",
+    "type": "terminal",
+    "url": ""
+  }
+]
+
