@@ -8,7 +8,7 @@
     "type": "terminal",
     "install": ["pkg update && pkg upgrade","pkg install -y python"],
     "uninstall": ["pkg uninstall -y python","pkg clean"],
-    "stars": ["c69p2w"]
+    "likes": ["c69p2w"]
   },
   {
     "id": "#0000002",
@@ -19,7 +19,7 @@
     "type": "terminal",
     "install": ["pkg install -y node"],
     "uninstall": ["pkg uninstall -y node","pkg clean"],
-    "stars": ["c69p2w"]
+    "likes": ["c69p2w"]
   }
 ]
 
