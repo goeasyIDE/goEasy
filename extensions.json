@@ -17,8 +17,8 @@
     "description": "**Nodejs installation for Android**.",
     "img": "https://goeasyide.github.io/goEasy/img/nodejs.png",
     "type": "terminal",
-    "install": ["pkg install -y node"],
-    "uninstall": ["pkg uninstall -y node","pkg clean"],
+    "install": ["pkg update && pkg upgrade","pkg install -y nodejs"],
+    "uninstall": ["pkg uninstall -y nodejs","pkg clean"],
     "likes": ["c69p2w"]
   }
 ]
