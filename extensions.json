@@ -6,8 +6,8 @@
     "description": "Direct installation of python with package update and upgrade.",
     "img": "https://goeasyide.github.io/goEasy/img/py.png",
     "type": "terminal",
-    "install": ["pkg update && pkg upgrade","Y","pkg install python","Y","Y"],
-    "uninstall": ["pkg uninstall python","Y","pkg clean"]
+    "install": ["pkg update && pkg upgrade","Y","pkg install -y python"],
+    "uninstall": ["pkg uninstall -y python","pkg clean"]
   }
 ]
 
