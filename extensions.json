@@ -20,6 +20,16 @@
     "install": ["pkg update && pkg upgrade","pkg install -y nodejs"],
     "uninstall": ["pkg uninstall -y nodejs","pkg clean"],
     "stars": ["c69p2w"]
+  },
+  {
+    "id": "#0000003",
+    "name": "Like Extensions",
+    "author": "openIDE",
+    "description": "Like your **favourite extension** directly through IDE.",
+    "img": "https://goeasyide.github.io/goEasy/img/py.png",
+    "type": "iframe",
+"url": "https://goeasyide.github.io/goEasy/extensions",
+"stars": []
+  
   }
 ]
-
