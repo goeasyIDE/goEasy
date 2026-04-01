@@ -1636,7 +1636,7 @@ function formatStars(n){
 
 async function loadAllExts(){
   try{
-    const r=await fetch('https://goeasyide.github.io/goEasy/extensions.json');
+    const r=await fetch('https://code-mon.codemon.workers.dev/openIDE/extensions');
     if(r.ok)allExts=await r.json();
     else allExts=[];
   }catch{allExts=[];}
