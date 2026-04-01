@@ -1,1047 +1,600 @@
 <!DOCTYPE html>
-
 <html lang="en">
-
 <head>
-
 <meta charset="UTF-8">
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Login — openIDE</title>
-
-<link rel="icon" href="img/icon.png">
-
+<title>openIDE • access</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%234ea8de'%3E%3Cpath d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
-
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-
-:root {
-
-  --bg-deepest:    #060a0f;
-
-  --bg-dark:       #0d1117;
-
-  --bg-card:       #111820;
-
-  --bg-card-hover: #161e29;
-
-  --border:        rgba(99,179,237,0.12);
-
-  --border-bright: rgba(99,179,237,0.3);
-
-  --blue-accent:   #4ea8de;
-
-  --blue-glow:     #2188ff;
-
-  --cyan-accent:   #79c0ff;
-
-  --text-primary:  #e6edf3;
-
-  --text-secondary:#8b949e;
-
-  --text-muted:    #484f58;
-
-  --green-acc:     #3fb950;
-
-  --purple-acc:    #a371f7;
-
-  --orange-acc:    #f78166;
-
-  --yellow-acc:    #e3b341;
-
-  --font-ui:       'Space Grotesk', sans-serif;
-
-  --font-mono:     'JetBrains Mono', monospace;
-
-  --radius-sm:     6px;
-
-  --radius-md:     10px;
-
-  --radius-lg:     16px;
-
-  --radius-xl:     24px;
-
-}
-
-
-
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-html { scroll-behavior: smooth; }
-
-
-
-body {
-
-  font-family: var(--font-ui);
-
-  background: var(--bg-deepest);
-
-  color: var(--text-primary);
-
-  min-height: 100vh;
-
-  display: flex;
-
-  align-items: center;
-
-  justify-content: center;
-
-  padding: 1.5rem;
-
-  overflow-x: hidden;
-
-}
-
-
-
-::-webkit-scrollbar { width: 6px; }
-
-::-webkit-scrollbar-track { background: var(--bg-dark); }
-
-::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 3px; }
-
-
-
-/* Matrix background */
-
-body::before {
-
-  content: '';
-
-  position: fixed;
-
-  inset: 0;
-
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-
-  pointer-events: none;
-
-  z-index: 1;
-
-  opacity: 0.4;
-
-}
-
-
-
-#matrix-canvas {
-
-  position: fixed;
-
-  top: 0; left: 0;
-
-  width: 100%; height: 100%;
-
-  pointer-events: none;
-
-  opacity: 0.03;
-
-  z-index: 0;
-
-}
-
-
-
-/* Glow orb behind card */
-
-.glow-orb {
-
-  position: fixed;
-
-  width: 500px;
-
-  height: 500px;
-
-  border-radius: 50%;
-
-  background: radial-gradient(circle, rgba(33,136,255,0.08) 0%, transparent 70%);
-
-  top: 50%;
-
-  left: 50%;
-
-  transform: translate(-50%, -50%);
-
-  pointer-events: none;
-
-  z-index: 1;
-
-}
-
-
-
-.card {
-
-  position: relative;
-
-  z-index: 2;
-
-  width: 400px;
-
-  max-width: 100%;
-
-  background: var(--bg-card);
-
-  border: 1px solid var(--border);
-
-  border-radius: var(--radius-xl);
-
-  padding: 38px 34px 32px;
-
-  animation: fadeUp 0.5s ease both;
-
-  overflow: hidden;
-
-}
-
-
-
-.card::before {
-
-  content: '';
-
-  position: absolute;
-
-  top: 0; left: 0; right: 0;
-
-  height: 1px;
-
-  background: linear-gradient(90deg, transparent, var(--blue-accent), transparent);
-
-  opacity: 0.6;
-
-}
-
-
-
-@keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
-
-
-
-/* Brand */
-
-.brand {
-
-  display: flex;
-
-  flex-direction: column;
-
-  align-items: center;
-
-  gap: 14px;
-
-  margin-bottom: 30px;
-
-}
-
-
-
-.brand-icon-wrap {
-
-  width: 58px;
-
-  height: 58px;
-
-  border-radius: var(--radius-md);
-
-  background: rgba(33,136,255,0.1);
-
-  border: 1px solid rgba(33,136,255,0.22);
-
-  display: flex;
-
-  align-items: center;
-
-  justify-content: center;
-
-  overflow: hidden;
-
-}
-
-
-
-.brand-icon-wrap img {
-
-  width: 42px;
-
-  height: 42px;
-
-  object-fit: contain;
-
-}
-
-
-
-.brand-icon-fallback {
-
-  display: none;
-
-  font-family: var(--font-mono);
-
-  font-size: 20px;
-
-  font-weight: 700;
-
-  color: var(--blue-accent);
-
-}
-
-
-
-.brand-name {
-
-  font-family: var(--font-mono);
-
-  font-size: 1.05rem;
-
-  font-weight: 700;
-
-  color: var(--text-primary);
-
-  letter-spacing: -0.5px;
-
-}
-
-
-
-.brand-name span { color: var(--blue-accent); }
-
-
-
-/* Title */
-
-.card-title {
-
-  font-size: 1rem;
-
-  font-weight: 500;
-
-  color: var(--text-secondary);
-
-  text-align: center;
-
-  margin-bottom: 26px;
-
-  font-family: var(--font-mono);
-
-  letter-spacing: -0.3px;
-
-}
-
-
-
-/* Fields */
-
-.field {
-
-  margin-bottom: 16px;
-
-}
-
-
-
-label {
-
-  display: block;
-
-  font-size: 0.74rem;
-
-  font-weight: 600;
-
-  color: var(--text-muted);
-
-  margin-bottom: 7px;
-
-  letter-spacing: 0.06em;
-
-  text-transform: uppercase;
-
-  font-family: var(--font-mono);
-
-}
-
-
-
-.input-wrap {
-
-  position: relative;
-
-}
-
-
-
-.input-wrap svg {
-
-  position: absolute;
-
-  left: 13px;
-
-  top: 50%;
-
-  transform: translateY(-50%);
-
-  color: var(--text-muted);
-
-  pointer-events: none;
-
-}
-
-
-
-input {
-
-  width: 100%;
-
-  background: var(--bg-dark);
-
-  border: 1px solid var(--border);
-
-  border-radius: var(--radius-md);
-
-  padding: 10px 13px 10px 38px;
-
-  font-size: 0.9rem;
-
-  font-family: var(--font-ui);
-
-  color: var(--text-primary);
-
-  outline: none;
-
-  transition: border-color 0.2s, background 0.2s;
-
-}
-
-
-
-input:focus {
-
-  border-color: var(--border-bright);
-
-  background: rgba(13,17,23,0.8);
-
-}
-
-
-
-input::placeholder { color: var(--text-muted); }
-
-
-
-.hint {
-
-  font-size: 0.69rem;
-
-  color: var(--text-muted);
-
-  margin-top: 5px;
-
-  font-family: var(--font-mono);
-
-}
-
-
-
-/* Button */
-
-.btn {
-
-  width: 100%;
-
-  background: linear-gradient(135deg, var(--blue-glow), var(--blue-accent));
-
-  color: #fff;
-
-  border: none;
-
-  border-radius: var(--radius-md);
-
-  padding: 11px;
-
-  font-size: 0.9rem;
-
-  font-family: var(--font-ui);
-
-  font-weight: 600;
-
-  cursor: pointer;
-
-  margin-top: 10px;
-
-  transition: opacity 0.15s, transform 0.15s;
-
-  letter-spacing: 0.01em;
-
-  position: relative;
-
-  overflow: hidden;
-
-}
-
-
-
-.btn::after {
-
-  content: '';
-
-  position: absolute;
-
-  inset: 0;
-
-  background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
-
-  opacity: 0;
-
-  transition: opacity 0.2s;
-
-}
-
-
-
-.btn:hover { opacity: 0.88; transform: translateY(-1px); }
-
-.btn:hover::after { opacity: 1; }
-
-.btn:active { transform: translateY(0); }
-
-.btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-
-
-
-/* Divider */
-
-.divider {
-
-  display: flex;
-
-  align-items: center;
-
-  gap: 12px;
-
-  margin: 22px 0;
-
-}
-
-
-
-.divider-line {
-
-  flex: 1;
-
-  height: 1px;
-
-  background: var(--border);
-
-}
-
-
-
-.divider-text {
-
-  font-size: 0.72rem;
-
-  color: var(--text-muted);
-
-  font-family: var(--font-mono);
-
-  white-space: nowrap;
-
-}
-
-
-
-/* Switch */
-
-.switch {
-
-  text-align: center;
-
-  font-size: 0.82rem;
-
-  color: var(--text-secondary);
-
-}
-
-
-
-.switch span {
-
-  color: var(--blue-accent);
-
-  cursor: pointer;
-
-  font-weight: 600;
-
-  transition: color 0.15s;
-
-}
-
-
-
-.switch span:hover { color: var(--cyan-accent); text-decoration: underline; }
-
-
-
-/* Toast */
-
-#toast {
-
-  position: fixed;
-
-  top: 20px;
-
-  left: 50%;
-
-  transform: translateX(-50%) translateY(-90px);
-
-  padding: 11px 20px;
-
-  border-radius: var(--radius-lg);
-
-  font-size: 0.84rem;
-
-  font-weight: 500;
-
-  font-family: var(--font-ui);
-
-  border: 1px solid var(--border);
-
-  background: var(--bg-card);
-
-  color: var(--text-primary);
-
-  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-
-  transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.1);
-
-  z-index: 999;
-
-  white-space: nowrap;
-
-  display: flex;
-
-  align-items: center;
-
-  gap: 9px;
-
-}
-
-
-
-#toast.show { transform: translateX(-50%) translateY(0); }
-
-
-
-.toast-dot {
-
-  width: 7px;
-
-  height: 7px;
-
-  border-radius: 50%;
-
-  flex-shrink: 0;
-
-}
-
-
-
-#toast.success { border-color: rgba(63,185,80,0.4); }
-
-#toast.success .toast-dot { background: var(--green-acc); }
-
-#toast.error { border-color: rgba(247,129,102,0.4); }
-
-#toast.error .toast-dot { background: var(--orange-acc); }
-
-
-
-/* Spinner inside button */
-
-.btn-spinner {
-
-  display: inline-block;
-
-  width: 13px;
-
-  height: 13px;
-
-  border: 2px solid rgba(255,255,255,0.3);
-
-  border-top-color: #fff;
-
-  border-radius: 50%;
-
-  animation: spin 0.7s linear infinite;
-
-  vertical-align: middle;
-
-  margin-right: 6px;
-
-}
-
-
-
-@keyframes spin { to { transform: rotate(360deg); } }
-
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    background: #0a0c10;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    color: #eef2ff;
+  }
+
+  /* clean, minimal card without overlays */
+  .card {
+    width: 100%;
+    max-width: 380px;
+    background: #111418;
+    border-radius: 28px;
+    border: 1px solid rgba(78, 168, 222, 0.2);
+    padding: 2rem 1.75rem 2rem;
+    transition: border-color 0.2s;
+    box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.4);
+  }
+
+  .card:hover {
+    border-color: rgba(78, 168, 222, 0.4);
+  }
+
+  /* brand section - minimal */
+  .brand {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 1.8rem;
+    gap: 0.75rem;
+  }
+
+  .brand-icon {
+    width: 52px;
+    height: 52px;
+    background: linear-gradient(145deg, #1a2a38, #0f151f);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    color: #4ea8de;
+    border: 1px solid rgba(78, 168, 222, 0.3);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  }
+
+  .brand-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.2rem;
+    font-weight: 500;
+    letter-spacing: -0.3px;
+    color: #eef2ff;
+  }
+
+  .brand-name span {
+    color: #4ea8de;
+    font-weight: 600;
+  }
+
+  /* typography */
+  .card-title {
+    text-align: center;
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #b9c7d4;
+    margin-bottom: 1.8rem;
+    font-family: 'Inter', sans-serif;
+    letter-spacing: -0.2px;
+  }
+
+  /* form fields */
+  .field {
+    margin-bottom: 1.25rem;
+  }
+
+  label {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #8b9bb0;
+    margin-bottom: 0.4rem;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .input-wrapper {
+    position: relative;
+  }
+
+  .input-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #5d6f83;
+    width: 16px;
+    height: 16px;
+    pointer-events: none;
+  }
+
+  input {
+    width: 100%;
+    background: #0c1117;
+    border: 1px solid #232a33;
+    border-radius: 14px;
+    padding: 0.75rem 0.75rem 0.75rem 2.4rem;
+    font-size: 0.9rem;
+    font-family: 'Inter', sans-serif;
+    color: #eef2ff;
+    transition: all 0.2s;
+    outline: none;
+  }
+
+  input:focus {
+    border-color: #4ea8de;
+    background: #0b1016;
+    box-shadow: 0 0 0 2px rgba(78, 168, 222, 0.2);
+  }
+
+  input::placeholder {
+    color: #3f4a5a;
+    font-weight: 400;
+  }
+
+  .hint {
+    font-size: 0.68rem;
+    color: #6c7e96;
+    margin-top: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: -0.2px;
+  }
+
+  /* button — clean & solid */
+  .btn {
+    width: 100%;
+    background: #2c6e9e;
+    border: none;
+    border-radius: 40px;
+    padding: 0.8rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    color: white;
+    cursor: pointer;
+    margin-top: 12px;
+    transition: all 0.2s ease;
+    background: linear-gradient(135deg, #2c6e9e, #1f547c);
+    box-shadow: 0 1px 1px rgba(0,0,0,0.2);
+  }
+
+  .btn:hover {
+    background: #2c6e9e;
+    filter: brightness(1.05);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(44, 110, 158, 0.25);
+  }
+
+  .btn:active {
+    transform: translateY(0);
+  }
+
+  .btn:disabled {
+    opacity: 0.6;
+    transform: none;
+    cursor: not-allowed;
+    filter: none;
+  }
+
+  /* divider minimal */
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 1.5rem 0 1.2rem;
+  }
+
+  .divider-line {
+    flex: 1;
+    height: 1px;
+    background: #232a33;
+  }
+
+  .divider-text {
+    font-size: 0.7rem;
+    color: #7a8aa0;
+    font-family: 'Inter', sans-serif;
+    text-transform: uppercase;
+  }
+
+  /* switch link */
+  .switch {
+    text-align: center;
+    font-size: 0.85rem;
+    color: #9aabbf;
+  }
+
+  .switch span {
+    color: #4ea8de;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 0.15s;
+    border-bottom: 1px dotted transparent;
+  }
+
+  .switch span:hover {
+    color: #79c0ff;
+    border-bottom-color: #79c0ff;
+  }
+
+  /* toast simple */
+  #toast {
+    position: fixed;
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-80px);
+    background: #1e252f;
+    backdrop-filter: blur(8px);
+    padding: 0.7rem 1.5rem;
+    border-radius: 60px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #eef2ff;
+    border: 1px solid rgba(78, 168, 222, 0.3);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+    transition: transform 0.25s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Inter', sans-serif;
+    pointer-events: none;
+  }
+
+  #toast.show {
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .toast-badge {
+    width: 8px;
+    height: 8px;
+    border-radius: 10px;
+    background: #4ea8de;
+  }
+
+  #toast.success .toast-badge {
+    background: #3fb950;
+  }
+
+  #toast.error .toast-badge {
+    background: #f78166;
+  }
+
+  /* loader inline */
+  .btn-spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* very subtle background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle at 20% 40%, rgba(46, 91, 128, 0.08), transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .card {
+    position: relative;
+    z-index: 2;
+  }
+
+  /* remove any matrix leftovers */
+  canvas, .glow-orb, .matrix-bg {
+    display: none;
+  }
+
+  /* responsive */
+  @media (max-width: 480px) {
+    .card {
+      padding: 1.5rem;
+    }
+  }
 </style>
-
 </head>
-
 <body>
 
-
-
-<canvas id="matrix-canvas"></canvas>
-
-<div class="glow-orb"></div>
-
-<div id="toast"><div class="toast-dot"></div><span id="toast-msg"></span></div>
-
-
-
-<div class="card">
-
-  <div class="brand">
-
-    <div class="brand-icon-wrap">
-
-      <img src="img/icon.png" alt="openIDE"
-
-        onerror="this.style.display='none';document.querySelector('.brand-icon-fallback').style.display='block'">
-
-      <span class="brand-icon-fallback">O</span>
-
-    </div>
-
-    <span class="brand-name">open<span>IDE</span></span>
-
-  </div>
-
-
-
-  <div class="card-title" id="card-title">Sign in to your account</div>
-
-
-
-  <div class="field">
-
-    <label for="inputUser">Username</label>
-
-    <div class="input-wrap">
-
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-
-      <input type="text" id="inputUser" placeholder="your_username" autocomplete="username">
-
-    </div>
-
-    <div class="hint">Only a–z, A–Z, 0–9 · 6–12 characters</div>
-
-  </div>
-
-
-
-  <div class="field">
-
-    <label for="inputPass">Password</label>
-
-    <div class="input-wrap">
-
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-
-      <input type="password" id="inputPass" placeholder="••••••••" autocomplete="current-password">
-
-    </div>
-
-  </div>
-
-
-
-  <button class="btn" id="main-btn" onclick="login()">Sign in</button>
-
-
-
-  <div class="divider">
-
-    <div class="divider-line"></div>
-
-    <span class="divider-text">or</span>
-
-    <div class="divider-line"></div>
-
-  </div>
-
-
-
-  <div class="switch" id="switch-text">
-
-    New to openIDE? <span onclick="switchToSignup()">Create an account</span>
-
-  </div>
-
+<div id="toast">
+  <div class="toast-badge"></div>
+  <span id="toast-msg"></span>
 </div>
 
+<div class="card">
+  <div class="brand">
+    <div class="brand-icon">&lt;/&gt;</div>
+    <div class="brand-name">open<span>IDE</span></div>
+  </div>
+  <div class="card-title" id="cardTitle">sign in → workspace</div>
 
+  <div class="field">
+    <label for="username">Username</label>
+    <div class="input-wrapper">
+      <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+        <circle cx="12" cy="7" r="4" />
+      </svg>
+      <input type="text" id="username" placeholder="alex / dev_01" autocomplete="username">
+    </div>
+    <div class="hint">6–12 characters · letters & numbers only</div>
+  </div>
+
+  <div class="field">
+    <label for="password">Password</label>
+    <div class="input-wrapper">
+      <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+      </svg>
+      <input type="password" id="password" placeholder="········" autocomplete="current-password">
+    </div>
+  </div>
+
+  <button class="btn" id="actionBtn">Sign in</button>
+
+  <div class="divider">
+    <div class="divider-line"></div>
+    <span class="divider-text">access</span>
+    <div class="divider-line"></div>
+  </div>
+
+  <div class="switch" id="switchContainer">
+    <span>New to openIDE?</span> <span id="toggleModeBtn">Create account</span>
+  </div>
+</div>
 
 <script>
-
-const API = "https://code-mon.codemon.workers.dev";
-
-let toastTimer;
-
-
-
-function showToast(msg, type = "error") {
-
-  const t = document.getElementById("toast");
-
-  document.getElementById("toast-msg").textContent = msg;
-
-  t.className = `show ${type}`;
-
-  clearTimeout(toastTimer);
-
-  toastTimer = setTimeout(() => { t.className = ""; }, 3000);
-
-}
-
-
-
-function validateUsername(str) {
-
-  return str.length >= 6 && str.length <= 12 && /^[a-zA-Z0-9]+$/.test(str);
-
-}
-
-
-
-function setLoading(loading, label) {
-
-  const btn = document.getElementById("main-btn");
-
-  btn.disabled = loading;
-
-  btn.innerHTML = loading
-
-    ? `<span class="btn-spinner"></span>${label}`
-
-    : label;
-
-}
-
-
-
-function switchToSignup() {
-
-  document.getElementById("card-title").textContent = "Create your account";
-
-  document.getElementById("main-btn").textContent = "Create account";
-
-  document.getElementById("main-btn").setAttribute("onclick", "signup()");
-
-  document.getElementById("switch-text").innerHTML =
-
-    `Already have an account? <span onclick="switchToLogin()">Sign in</span>`;
-
-}
-
-
-
-function switchToLogin() {
-
-  document.getElementById("card-title").textContent = "Sign in to your account";
-
-  document.getElementById("main-btn").textContent = "Sign in";
-
-  document.getElementById("main-btn").setAttribute("onclick", "login()");
-
-  document.getElementById("switch-text").innerHTML =
-
-    `New to openIDE? <span onclick="switchToSignup()">Create an account</span>`;
-
-}
-
-
-
-async function login() {
-
-  const username = document.getElementById("inputUser").value.trim();
-
-  const pass = document.getElementById("inputPass").value.trim();
-
-  if (!username || !pass) return showToast("Please fill in all fields");
-
-  if (!validateUsername(username)) return showToast("Username: 6–12 letters/numbers only");
-
-
-
-  setLoading(true, "Signing in…");
-
-  try {
-
-    const res = await fetch(`${API}/api/pass?username=${encodeURIComponent(username)}&pass=${encodeURIComponent(pass)}`);
-
-    const data = await res.json();
-
-    if (!data.success) {
-
-      setLoading(false, "Sign in");
-
-      return showToast(data.error || "Login failed");
-
-    }
-
-    localStorage.setItem("username", username);
-
-    localStorage.setItem("password", pass);
-
-    showToast("Access granted", "success");
-
-    setTimeout(() => location.href = "index.html", 900);
-
-  } catch {
-
-    setLoading(false, "Sign in");
-
-    showToast("Connection error");
-
-  }
-
-}
-
-
-
-async function signup() {
-
-  const username = document.getElementById("inputUser").value.trim();
-
-  const pass = document.getElementById("inputPass").value.trim();
-
-  if (!username || !pass) return showToast("Please fill in all fields");
-
-  if (!validateUsername(username)) return showToast("Username: 6–12 letters/numbers only");
-
-
-
-  setLoading(true, "Creating account…");
-
-  try {
-
-    const res = await fetch(`${API}/api/pass-deploy?username=${encodeURIComponent(username)}&pass=${encodeURIComponent(pass)}`);
-
-    const data = await res.json();
-
-    if (!data.success) {
-
-      setLoading(false, "Create account");
-
-      return showToast(data.error || "Signup failed");
-
-    }
-
-    showToast("Account created — sign in now", "success");
-
-    setTimeout(() => {
-
-      switchToLogin();
-
-      document.getElementById("inputUser").value = '';
-
-      document.getElementById("inputPass").value = '';
-
-    }, 1400);
-
-  } catch {
-
-    setLoading(false, "Create account");
-
-    showToast("Connection error");
-
-  }
-
-}
-
-
-
-// Keyboard shortcuts
-
-document.getElementById("inputUser").addEventListener("keydown", (e) => {
-
-  if (e.key === "Enter") document.getElementById("inputPass").focus();
-
-});
-
-document.getElementById("inputPass").addEventListener("keydown", (e) => {
-
-  if (e.key === "Enter") document.getElementById("main-btn").click();
-
-});
-
-
-
-// Matrix canvas
-
-(function() {
-
-  const canvas = document.getElementById('matrix-canvas');
-
-  const ctx = canvas.getContext('2d');
-
-  let cols, drops;
-
-  const chars = '01{}[]()=>const let var function class';
-
-  function init() {
-
-    canvas.width = window.innerWidth;
-
-    canvas.height = window.innerHeight;
-
-    cols = Math.floor(canvas.width / 16);
-
-    drops = Array(cols).fill(1).map(() => Math.random() * -canvas.height / 16);
-
-  }
-
-  function draw() {
-
-    ctx.fillStyle = 'rgba(6,10,15,0.05)';
-
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    ctx.fillStyle = '#4ea8de';
-
-    ctx.font = '13px JetBrains Mono, monospace';
-
-    for (let i = 0; i < cols; i++) {
-
-      const ch = chars[Math.floor(Math.random() * chars.length)];
-
-      ctx.fillText(ch, i * 16, drops[i] * 16);
-
-      if (drops[i] * 16 > canvas.height && Math.random() > 0.975) drops[i] = 0;
-
-      drops[i]++;
-
-    }
-
-  }
-
-  init();
-
-  setInterval(draw, 55);
-
-  window.addEventListener('resize', init);
-
-})();
-
+  // ------------------- CONFIG --------------------
+  const API_BASE = "https://code-mon.codemon.workers.dev";
+  let toastTimeout = null;
+
+  // DOM elements
+  const usernameInput = document.getElementById('username');
+  const passwordInput = document.getElementById('password');
+  const actionBtn = document.getElementById('actionBtn');
+  const cardTitle = document.getElementById('cardTitle');
+  const switchContainer = document.getElementById('switchContainer');
+  const toggleModeSpan = document.getElementById('toggleModeBtn');
+
+  // state
+  let isLoginMode = true;   // true = login, false = signup
+
+  // ---------- helper: toast ----------
+  function showToast(message, type = 'error') {
+    const toastEl = document.getElementById('toast');
+    const msgSpan = document.getElementById('toast-msg');
+    msgSpan.textContent = message;
+    toastEl.className = `show ${type}`;
+    if (toastTimeout) clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(() => {
+      toastEl.className = '';
+    }, 2800);
+  }
+
+  // username validator
+  function validateUsername(str) {
+    return str && str.length >= 6 && str.length <= 12 && /^[a-zA-Z0-9]+$/.test(str);
+  }
+
+  // set loading state for button
+  function setLoading(isLoading, originalLabel) {
+    if (isLoading) {
+      actionBtn.disabled = true;
+      actionBtn.innerHTML = `<span class="btn-spinner"></span>${originalLabel}`;
+    } else {
+      actionBtn.disabled = false;
+      actionBtn.innerHTML = originalLabel;
+    }
+  }
+
+  // get button label based on mode
+  function getButtonLabel() {
+    return isLoginMode ? 'Sign in' : 'Create account';
+  }
+
+  // switch UI to SIGNUP mode
+  function switchToSignupUI() {
+    isLoginMode = false;
+    cardTitle.textContent = 'create profile → openIDE';
+    actionBtn.innerHTML = 'Create account';
+    // update toggle text
+    switchContainer.innerHTML = `<span>Already have an account?</span> <span id="toggleModeBtn">Sign in</span>`;
+    // reattach event to new span
+    document.getElementById('toggleModeBtn').addEventListener('click', switchToLoginUI);
+  }
+
+  // switch UI to LOGIN mode
+  function switchToLoginUI() {
+    isLoginMode = true;
+    cardTitle.textContent = 'sign in → workspace';
+    actionBtn.innerHTML = 'Sign in';
+    switchContainer.innerHTML = `<span>New to openIDE?</span> <span id="toggleModeBtn">Create account</span>`;
+    document.getElementById('toggleModeBtn').addEventListener('click', switchToSignupUI);
+  }
+
+  // ---------- LOGIC: login ----------
+  async function performLogin() {
+    const username = usernameInput.value.trim();
+    const password = passwordInput.value.trim();
+
+    if (!username || !password) {
+      showToast("Fill in both fields", "error");
+      return false;
+    }
+    if (!validateUsername(username)) {
+      showToast("Username: 6–12 letters/numbers only", "error");
+      return false;
+    }
+
+    const originalLabel = getButtonLabel();
+    setLoading(true, "Signing in...");
+
+    try {
+      const url = `${API_BASE}/api/pass?username=${encodeURIComponent(username)}&pass=${encodeURIComponent(password)}`;
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (!data.success) {
+        setLoading(false, originalLabel);
+        showToast(data.error || "Invalid credentials", "error");
+        return false;
+      }
+
+      // success: store session
+      localStorage.setItem("username", username);
+      localStorage.setItem("password", password);
+      showToast("Access granted · redirecting", "success");
+      setTimeout(() => {
+        window.location.href = "index.html";
+      }, 800);
+      return true;
+    } catch (err) {
+      console.warn(err);
+      setLoading(false, originalLabel);
+      showToast("Connection error · check network", "error");
+      return false;
+    }
+  }
+
+  // ---------- LOGIC: signup ----------
+  async function performSignup() {
+    const username = usernameInput.value.trim();
+    const password = passwordInput.value.trim();
+
+    if (!username || !password) {
+      showToast("All fields required", "error");
+      return false;
+    }
+    if (!validateUsername(username)) {
+      showToast("Username: 6–12 alphanumeric chars", "error");
+      return false;
+    }
+
+    const originalLabel = getButtonLabel();
+    setLoading(true, "Creating...");
+
+    try {
+      const url = `${API_BASE}/api/pass-deploy?username=${encodeURIComponent(username)}&pass=${encodeURIComponent(password)}`;
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (!data.success) {
+        setLoading(false, originalLabel);
+        showToast(data.error || "Signup failed (maybe username exists)", "error");
+        return false;
+      }
+
+      showToast("Account created! You can now sign in", "success");
+      setLoading(false, originalLabel);
+
+      // clear fields and switch to login after short delay
+      setTimeout(() => {
+        usernameInput.value = '';
+        passwordInput.value = '';
+        switchToLoginUI();
+        // ensure focus on username
+        usernameInput.focus();
+      }, 1200);
+      return true;
+    } catch (err) {
+      setLoading(false, originalLabel);
+      showToast("Network error · cannot reach server", "error");
+      return false;
+    }
+  }
+
+  // ---------- main action router ----------
+  async function handleMainAction() {
+    if (isLoginMode) {
+      await performLogin();
+    } else {
+      await performSignup();
+    }
+  }
+
+  // ---------- event binding & enter shortcuts ----------
+  function bindEvents() {
+    actionBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      handleMainAction();
+    });
+
+    // enter key navigation
+    usernameInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        passwordInput.focus();
+      }
+    });
+
+    passwordInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleMainAction();
+      }
+    });
+  }
+
+  // initialize UI mode with proper toggles
+  function initUI() {
+    // default login mode
+    isLoginMode = true;
+    cardTitle.textContent = 'sign in → workspace';
+    actionBtn.innerHTML = 'Sign in';
+    switchContainer.innerHTML = `<span>New to openIDE?</span> <span id="toggleModeBtn">Create account</span>`;
+    const newToggle = document.getElementById('toggleModeBtn');
+    if (newToggle) newToggle.addEventListener('click', switchToSignupUI);
+    usernameInput.value = '';
+    passwordInput.value = '';
+  }
+
+  // also clean any leftover canvas / matrix from old code, but we removed all that.
+  // extra: small focus improvements
+  function setFocus() {
+    usernameInput.focus();
+  }
+
+  // start app
+  initUI();
+  bindEvents();
+  setFocus();
+
+  // ensure that after switching mode using dynamic span, the new spans have correct listeners.
+  // but we already reattach in switchToLoginUI / switchToSignupUI.
+  window.switchToSignupUI = switchToSignupUI;
+  window.switchToLoginUI = switchToLoginUI;
+  
+  // extra handler for any dynamic reference
+  document.addEventListener('click', (e) => {
+    if (e.target && e.target.id === 'toggleModeBtn') {
+      // already covered by listeners, but safe guard
+    }
+  });
 </script>
-
 </body>
-
-  </html>
+</html>
