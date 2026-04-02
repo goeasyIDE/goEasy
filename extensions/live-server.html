@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Live Server</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      height: 100vh;
+      overflow: hidden;
+      background: #0f0f0f;
+    }
+
+    /* ── IFRAME LAYER ── */
+    #iframe-layer {
+      display: none;
+      position: fixed;
+      inset: 0;
+      flex-direction: column;
+    }
+    #iframe-layer.active { display: flex; }
+
+    #site-frame {
+      width: 100%;
+      flex: 1;
+      border: none;
+    }
+
+    #change-bar {
+      background: #1a1a1a;
+      border-top: 1px solid #2a2a2a;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-size: 13px;
+      color: #888;
+      flex-shrink: 0;
+    }
+
+    #change-bar span { color: #888; }
+    #change-url-btn {
+      color: #5b9cf6;
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-size: 13px;
+      padding: 0;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    #change-url-btn:hover { color: #7db4ff; }
+
+    /* ── BLUR OVERLAY ── */
+    #setup-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+    #setup-overlay.active { display: flex; }
+
+    #blur-bg {
+      position: absolute;
+      inset: 0;
+      background: rgba(10, 10, 10, 0.75);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+
+    /* ── SETUP CARD ── */
+    #setup-card {
+      position: relative;
+      z-index: 101;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+    }
+
+    #ls-icon {
+      width: 72px;
+      height: 72px;
+      object-fit: contain;
+    }
+
+    #setup-label {
+      margin-top: 24px;
+      font-size: 17px;
+      font-weight: 500;
+      color: #e8e8e8;
+      letter-spacing: 0.01em;
+      transition: opacity 0.25s, transform 0.25s;
+    }
+
+    #url-input-wrap {
+      display: none;
+      margin-top: 24px;
+    }
+    #url-input-wrap.visible { display: block; }
+
+    #url-input {
+      width: 300px;
+      padding: 10px 14px;
+      background: #1e1e1e;
+      border: 1px solid #333;
+      border-radius: 8px;
+      color: #e8e8e8;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    #url-input:focus { border-color: #5b9cf6; }
+    #url-input::placeholder { color: #555; }
+
+    #continue-btn {
+      margin-top: 28px;
+      padding: 10px 32px;
+      background: #5b9cf6;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+    #continue-btn:hover { background: #4a8de4; }
+    #continue-btn:active { transform: scale(0.97); }
+
+    /* inline change-url flow (shown inside overlay if triggered from bar) */
+    #inline-change-wrap {
+      display: none;
+      margin-top: 24px;
+    }
+    #inline-change-wrap.visible { display: block; }
+
+    #inline-url-input {
+      width: 300px;
+      padding: 10px 14px;
+      background: #1e1e1e;
+      border: 1px solid #333;
+      border-radius: 8px;
+      color: #e8e8e8;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    #inline-url-input:focus { border-color: #5b9cf6; }
+    #inline-url-input::placeholder { color: #555; }
+  </style>
+</head>
+<body>
+
+  <!-- MAIN IFRAME VIEW -->
+  <div id="iframe-layer">
+    <iframe id="site-frame" src="" allowfullscreen></iframe>
+    <div id="change-bar">
+      <span>Not the website you wanted?</span>
+      <button id="change-url-btn">Click here</button>
+    </div>
+  </div>
+
+  <!-- SETUP OVERLAY -->
+  <div id="setup-overlay">
+    <div id="blur-bg"></div>
+    <div id="setup-card">
+      <img id="ls-icon" src="../img/live-server.png" alt="Live Server" onerror="this.style.display='none'; document.getElementById('ls-icon-fallback').style.display='flex'"/>
+      <div id="ls-icon-fallback" style="display:none;width:72px;height:72px;background:#1e3a5f;border-radius:16px;align-items:center;justify-content:center;">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" stroke="#5b9cf6" stroke-width="1.5"/>
+          <path d="M8 12l2.5 2.5L16 9" stroke="#5b9cf6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+
+      <div id="setup-label">Let's get you set up</div>
+
+      <div id="url-input-wrap">
+        <input id="url-input" type="url" placeholder="Enter your website URL" autocomplete="off" />
+      </div>
+
+      <!-- Change-URL mode input -->
+      <div id="inline-change-wrap">
+        <input id="inline-url-input" type="url" placeholder="Enter new website URL" autocomplete="off" />
+      </div>
+
+      <button id="continue-btn">Continue</button>
+    </div>
+  </div>
+
+  <script>
+    const LS_KEY = 'live-server-extension-url';
+    let step = 1;
+    let changeMode = false;
+
+    const iframeLayer   = document.getElementById('iframe-layer');
+    const setupOverlay  = document.getElementById('setup-overlay');
+    const siteFrame     = document.getElementById('site-frame');
+    const setupLabel    = document.getElementById('setup-label');
+    const urlInputWrap  = document.getElementById('url-input-wrap');
+    const urlInput      = document.getElementById('url-input');
+    const inlineChangeWrap = document.getElementById('inline-change-wrap');
+    const inlineUrlInput   = document.getElementById('inline-url-input');
+    const continueBtn   = document.getElementById('continue-btn');
+    const changeUrlBtn  = document.getElementById('change-url-btn');
+
+    function normalizeUrl(raw) {
+      raw = raw.trim();
+      if (!raw) return null;
+      if (!/^https?:\/\//i.test(raw)) raw = 'https://' + raw;
+      try { new URL(raw); return raw; } catch { return null; }
+    }
+
+    function loadSite(url) {
+      siteFrame.src = url;
+      setupOverlay.classList.remove('active');
+      iframeLayer.classList.add('active');
+    }
+
+    function showSetup() {
+      changeMode = false;
+      step = 1;
+      setupLabel.textContent = "Let's get you set up";
+      setupLabel.style.display = 'block';
+      urlInputWrap.classList.remove('visible');
+      inlineChangeWrap.classList.remove('visible');
+      setupOverlay.classList.add('active');
+    }
+
+    function showChangeMode() {
+      changeMode = true;
+      setupLabel.textContent = 'Change your website URL';
+      urlInputWrap.classList.remove('visible');
+      inlineChangeWrap.classList.add('visible');
+      inlineUrlInput.value = '';
+      setupOverlay.classList.add('active');
+      setTimeout(() => inlineUrlInput.focus(), 50);
+    }
+
+    continueBtn.addEventListener('click', () => {
+      if (changeMode) {
+        const raw = inlineUrlInput.value;
+        const url = normalizeUrl(raw);
+        if (!url) { inlineUrlInput.style.border = '1px solid #e24b4a'; return; }
+        inlineUrlInput.style.border = '1px solid #333';
+        localStorage.setItem(LS_KEY, url);
+        loadSite(url);
+        return;
+      }
+
+      if (step === 1) {
+        step = 2;
+        setupLabel.style.opacity = '0';
+        setupLabel.style.transform = 'translateY(-8px)';
+        setTimeout(() => {
+          setupLabel.style.display = 'none';
+          urlInputWrap.classList.add('visible');
+          setTimeout(() => urlInput.focus(), 50);
+        }, 220);
+        return;
+      }
+
+      if (step === 2) {
+        const raw = urlInput.value;
+        const url = normalizeUrl(raw);
+        if (!url) { urlInput.style.border = '1px solid #e24b4a'; return; }
+        urlInput.style.border = '1px solid #333';
+        localStorage.setItem(LS_KEY, url);
+        loadSite(url);
+      }
+    });
+
+    urlInput.addEventListener('keydown', e => { if (e.key === 'Enter') continueBtn.click(); });
+    inlineUrlInput.addEventListener('keydown', e => { if (e.key === 'Enter') continueBtn.click(); });
+
+    changeUrlBtn.addEventListener('click', () => showChangeMode());
+
+    // Init
+    const saved = localStorage.getItem(LS_KEY);
+    if (saved) {
+      loadSite(saved);
+    } else {
+      showSetup();
+    }
+  </script>
+</body>
+      </html>
