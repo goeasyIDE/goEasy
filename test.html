@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<p id="output"></p>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+
+  const ip = params.get("ip");
+  const pass = params.get("pass");
+
+  document.getElementById("output").textContent =
+    "IP: " + ip + " PASS: " + pass;
+</script>
+
+</body>
+</html>
