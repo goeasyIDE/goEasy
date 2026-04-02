@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>openIDE</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #0f0f0f;
+    color: #f5f5f5;
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+  }
+  .container {
+    max-width: 900px;
+    margin: auto;
+    padding: 20px;
+  }
+  h1, h2 {
+    color: #00bcd4;
+  }
+  .btn {
+    display: inline-block;
+    padding: 12px 20px;
+    background: #00bcd4;
+    color: #000;
+    text-decoration: none;
+    font-weight: bold;
+    border-radius: 6px;
+    margin-bottom: 20px;
+  }
+  .btn:hover {
+    background: #00e5ff;
+  }
+  ul {
+    margin-left: 20px;
+  }
+  code {
+    background: #1e1e1e;
+    padding: 5px 8px;
+    border-radius: 4px;
+    display: inline-block;
+  }
+  pre {
+    background: #1e1e1e;
+    padding: 10px;
+    border-radius: 6px;
+    overflow-x: auto;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<h1>openIDE</h1>
+
+<a class="btn" href="https://goeasyide.github.io/goEasy/openIDE" target="_blank">
+  Launch IDE
+</a>
+
+<h2>What is openIDE?</h2>
+<p>
+openIDE is a lightweight web-based IDE designed mainly for mobile users who want to code, run, and manage projects directly from their browser. It provides terminal access, extension support, and multi-language execution — all without needing a heavy desktop setup.
+</p>
+
+<h2>How to use openIDE?</h2>
+<p>
+To start using openIDE, you need Node.js installed.
+</p>
+
+<p><strong>For mobile users:</strong></p>
+<ol>
+  <li>Install a TTY app like <strong>Termux</strong></li>
+  <li>Run:</li>
+</ol>
+
+<pre>pkg install nodejs</pre>
+
+<p>Then install openIDE globally:</p>
+
+<pre>npm install -g @goeasyide/openIDE</pre>
+
+<p>
+Now go to your source/project folder and run:
+</p>
+
+<pre>openIDE</pre>
+
+<p>
+This will start the openIDE server from that folder.
+</p>
+
+<p>
+You will be asked to enter a password for the first time.  
+Make sure to use a <strong>very strong password</strong>.  
+We are not responsible for any casualties caused by weak security.
+</p>
+
+<h2>How to make your own extension?</h2>
+<ol>
+  <li>
+    Join our Discord server:  
+    <a href="https://discord.gg/v3gcb7ptXg" target="_blank">https://discord.gg/v3gcb7ptXg</a>
+  </li>
+  <li>
+    Apply there to get access for extension development.
+  </li>
+  <li>
+    For any issues, contact staff on Discord.
+  </li>
+  <li>
+    Check our GitHub to understand the blueprint of how extensions are built.
+  </li>
+</ol>
+
+<h2>How can your extension be banned or cancelled?</h2>
+<ul>
+  <li>Your extension can be cancelled due to inappropriate name or description.</li>
+  <li>Only valid types are <strong>iframe</strong> and <strong>terminal</strong>. Others will be rejected.</li>
+  <li>Using inappropriate URLs, websites, or non-iframe-compatible pages will lead to cancellation.</li>
+  <li>Inappropriate icons are not allowed.</li>
+  <li>Using openIDE routes in backend is strictly prohibited and can lead to <strong>PERMANENT BAN</strong>.</li>
+  <li>Sending or storing user credentials (IP, password) is strictly prohibited and leads to <strong>PERMANENT BAN</strong>.</li>
+  <li>Changing extension version or code without proper update application leads to <strong>PERMANENT BAN</strong>.</li>
+  <li>Terminal extensions installing/uninstalling harmful or bad packages will be cancelled.</li>
+</ul>
+
+</div>
+
+</body>
+</html>
