@@ -723,6 +723,42 @@ footer {
 </div>
 
 <script>
+        (async function() {
+    const API = "https://code-mon.codemon.workers.dev";
+
+    const username = localStorage.getItem("username");
+    const password = localStorage.getItem("password");
+
+    //  No credentials → go to login
+    if (!username || !password) {
+        localStorage.clear();
+        location.href = "login.html";
+        return;
+    }
+
+    try {
+        const res = await fetch(`${API}/api/pass?username=${username}&pass=${password}`);
+        const data = await res.json();
+
+        //  Wrong password / user not found
+        if (!data.success) {
+            localStorage.removeItem("code-mon-username");
+            localStorage.removeItem("code-mon-pass");
+            localStorage.removeItem("user");
+
+            location.href = "login.html";
+            return;
+        }
+
+        //  Auth success → continue loading file.html normally
+        console.log("User authenticated:", username);
+
+    } catch (err) {
+        // Network failure = prevent access
+        localStorage.clear();
+        location.href = "login.html";
+    }
+})();
 const API = 'https://code-mon.codemon.workers.dev';
 
 let allExtensions = [];
