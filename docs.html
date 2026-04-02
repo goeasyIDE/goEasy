@@ -2,132 +2,369 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>openIDE</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>openIDE — clean · portable · dev environment</title>
 <style>
-  body {
-    font-family: Arial, sans-serif;
-    background: #0f0f0f;
-    color: #f5f5f5;
+  * {
     margin: 0;
     padding: 0;
-    line-height: 1.6;
+    box-sizing: border-box;
   }
+
+  body {
+    background: #faf9f4;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    color: #1c231b;
+    line-height: 1.55;
+  }
+
   .container {
-    max-width: 900px;
-    margin: auto;
-    padding: 20px;
+    max-width: 1150px;
+    margin: 0 auto;
+    padding: 2rem 1.8rem 4rem;
   }
-  h1, h2 {
-    color: #00bcd4;
+
+  h1 {
+    font-size: 3.3rem;
+    font-weight: 620;
+    letter-spacing: -0.02em;
+    background: linear-gradient(130deg, #2c5e2d, #5b7e48);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    margin-bottom: 0.2rem;
   }
+
+  .tagline {
+    font-size: 1.1rem;
+    color: #4d6a3b;
+    border-left: 3px solid #8bb573;
+    padding-left: 1rem;
+    margin: 0.7rem 0 1.8rem 0;
+    font-weight: 440;
+  }
+
   .btn {
-    display: inline-block;
-    padding: 12px 20px;
-    background: #00bcd4;
-    color: #000;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: #2b4f2c;
+    color: white;
     text-decoration: none;
-    font-weight: bold;
-    border-radius: 6px;
-    margin-bottom: 20px;
+    font-weight: 520;
+    font-size: 1rem;
+    padding: 0.75rem 1.8rem;
+    border-radius: 44px;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    margin-bottom: 2rem;
   }
+
   .btn:hover {
-    background: #00e5ff;
+    background: #1e3a1f;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 18px rgba(0,0,0,0.06);
   }
-  ul {
-    margin-left: 20px;
+
+  h2 {
+    font-size: 1.7rem;
+    font-weight: 570;
+    color: #2a4827;
+    margin: 2.2rem 0 1rem 0;
+    letter-spacing: -0.01em;
+    border-bottom: 1.8px solid #e2e6d6;
+    padding-bottom: 0.35rem;
   }
-  code {
-    background: #1e1e1e;
-    padding: 5px 8px;
-    border-radius: 4px;
-    display: inline-block;
+
+  .code-block {
+    background: #1e261c;
+    border-radius: 20px;
+    margin: 1rem 0 1.2rem;
+    overflow: hidden;
+    border: 1px solid #dadfcc;
   }
+
+  .code-header {
+    display: flex;
+    justify-content: flex-end;
+    padding: 0.6rem 1rem;
+    background: #2a3326;
+  }
+
+  .copy-btn {
+    background: #3f5240;
+    border: none;
+    color: #f0f2e4;
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 0.3rem 1rem;
+    border-radius: 40px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: 0.15s;
+    letter-spacing: 0.3px;
+  }
+
+  .copy-btn:hover {
+    background: #5a7356;
+    color: white;
+  }
+
   pre {
-    background: #1e1e1e;
-    padding: 10px;
-    border-radius: 6px;
+    margin: 0;
+    padding: 1rem 1.2rem;
     overflow-x: auto;
+    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+    font-size: 0.85rem;
+    line-height: 1.45;
+    color: #eef2e0;
+    background: #1e261c;
+  }
+
+  code {
+    background: #eaece2;
+    padding: 0.2rem 0.5rem;
+    border-radius: 12px;
+    font-family: 'SF Mono', monospace;
+    font-size: 0.85rem;
+    color: #2c5429;
+    font-weight: 500;
+  }
+
+  .inline-icon {
+    display: inline-block;
+    margin-right: 4px;
+  }
+
+  .discord-text {
+    background: #edf0e6;
+    display: inline-block;
+    padding: 0.2rem 1rem;
+    border-radius: 60px;
+    font-family: monospace;
+    font-size: 0.9rem;
+    letter-spacing: 0.2px;
+    color: #2c4d2a;
+    border: 1px solid #cad2b5;
+    font-weight: 500;
+  }
+
+  .note {
+    background: #f1f4ea;
+    border-left: 5px solid #86a76f;
+    padding: 1rem 1.4rem;
+    border-radius: 22px;
+    margin: 1.4rem 0;
+  }
+
+  .badge-list {
+    list-style: none;
+    margin-left: 0;
+  }
+
+  .badge-list li {
+    background: #ffffffdb;
+    padding: 0.65rem 1rem;
+    margin: 0.7rem 0;
+    border-radius: 24px;
+    border: 1px solid #e0e5d3;
+    backdrop-filter: blur(2px);
+  }
+
+  strong {
+    color: #2e5e2b;
+    font-weight: 620;
+  }
+
+  a {
+    color: #3b6a35;
+    text-decoration: none;
+    border-bottom: 1px solid #c2d4b3;
+  }
+
+  a:hover {
+    border-bottom-color: #2f5430;
+    color: #1f421e;
+  }
+
+  hr {
+    margin: 2rem 0;
+    border: none;
+    height: 1px;
+    background: #dddacb;
+  }
+
+  .flex-btns {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
+    margin: 1.2rem 0 0.5rem;
+  }
+
+  @media (max-width: 680px) {
+    .container {
+      padding: 1.4rem 1.2rem;
+    }
+    h1 {
+      font-size: 2.5rem;
+    }
+    h2 {
+      font-size: 1.45rem;
+    }
+    pre {
+      font-size: 0.73rem;
+      padding: 0.8rem;
+    }
   }
 </style>
 </head>
 <body>
-
 <div class="container">
+  <h1>openIDE</h1>
+  <div class="tagline">mobile-first · terminal native · extendable</div>
 
-<h1>openIDE</h1>
+  <a class="btn" href="https://goeasyide.github.io/goEasy/openIDE" target="_blank" rel="noopener noreferrer">
+    ✦ Launch IDE
+  </a>
 
-<a class="btn" href="https://goeasyide.github.io/goEasy/openIDE" target="_blank">
-  Launch IDE
-</a>
+  <h2>what is openIDE?</h2>
+  <p>openIDE is a featherlight web-based IDE that runs right in your browser. Built for mobile-first workflows: code, run, manage projects, access a real terminal, and install extensions — no complex setup. Works perfectly on phones via Termux and on desktops alike.</p>
 
-<h2>What is openIDE?</h2>
-<p>
-openIDE is a lightweight web-based IDE designed mainly for mobile users who want to code, run, and manage projects directly from their browser. It provides terminal access, extension support, and multi-language execution — all without needing a heavy desktop setup.
-</p>
+  <h2>how to use openIDE</h2>
+  <p><strong>📦 Prerequisite:</strong> Node.js installed on your machine.</p>
+  <p><strong>📱 Mobile (Termux / iSH):</strong></p>
+  <ol>
+    <li>Install a terminal app like <strong>Termux</strong> (Android) or <strong>iSH</strong> (iOS).</li>
+    <li>Install Node.js:</li>
+  </ol>
 
-<h2>How to use openIDE?</h2>
-<p>
-To start using openIDE, you need Node.js installed.
-</p>
+  <div class="code-block">
+    <div class="code-header">
+      <button class="copy-btn" data-cmd="pkg install nodejs">📋 Copy</button>
+    </div>
+    <pre><code>pkg install nodejs</code></pre>
+  </div>
 
-<p><strong>For mobile users:</strong></p>
-<ol>
-  <li>Install a TTY app like <strong>Termux</strong></li>
-  <li>Run:</li>
-</ol>
+  <p>Then install openIDE globally:</p>
+  <div class="code-block">
+    <div class="code-header">
+      <button class="copy-btn" data-cmd="npm install -g @goeasyide/openIDE">📋 Copy</button>
+    </div>
+    <pre><code>npm install -g @goeasyide/openIDE</code></pre>
+  </div>
 
-<pre>pkg install nodejs</pre>
+  <p>Go to your source/project folder and run:</p>
+  <div class="code-block">
+    <div class="code-header">
+      <button class="copy-btn" data-cmd="openIDE">📋 Copy</button>
+    </div>
+    <pre><code>openIDE</code></pre>
+  </div>
 
-<p>Then install openIDE globally:</p>
+  <div class="note">
+    🔐 <strong>Security first</strong> — You’ll be prompted to set a password on first run. <strong>Use a very strong password.</strong> Keep it safe. The maintainers are not responsible for weak security choices.
+  </div>
 
-<pre>npm install -g @goeasyide/openIDE</pre>
+  <h2>building your own extension</h2>
+  <ul>
+    <li>Join our community on <strong>Discord</strong> → <span class="discord-text">discord.gg/v3gcb7ptXg</span> (click to copy invite)</li>
+    <li>Apply for extension developer access inside the server.</li>
+    <li>Study the openIDE extension blueprint on GitHub.</li>
+    <li>Reach out to staff for reviews or technical questions.</li>
+  </ul>
 
-<p>
-Now go to your source/project folder and run:
-</p>
+  <div class="flex-btns">
+    <button class="copy-btn" id="copyDiscordBtn" style="background:#3f5240; padding: 0.4rem 1.2rem;">📋 Copy Discord invite</button>
+  </div>
 
-<pre>openIDE</pre>
+  <h2>extension rules & moderation</h2>
+  <ul class="badge-list">
+    <li><strong>❌ Cancellation reasons:</strong> inappropriate name, misleading description, low‑quality icon or offensive content.</li>
+    <li>Only valid types: <code>iframe</code> and <code>terminal</code> — others get rejected automatically.</li>
+    <li>Using malicious, adult, or non‑iframe‑compatible URLs leads to immediate removal.</li>
+    <li><strong>⚠️ Permanent ban</strong> for using openIDE internal routes in backend logic.</li>
+    <li><strong>⚠️ Permanent ban</strong> for collecting or storing user credentials (IP, password, tokens).</li>
+    <li><strong>⚠️ Permanent ban</strong> for changing extension version/code without submitting a proper update request.</li>
+    <li>Terminal extensions installing harmful packages, backdoors, or cryptominers → banned & removed.</li>
+  </ul>
 
-<p>
-This will start the openIDE server from that folder.
-</p>
+  <h2>why openIDE?</h2>
+  <p>No cloud lock-in, no telemetry, no bloat. The entire IDE runs locally on your machine after a tiny npm install. Extensions are community-driven but strictly reviewed. Perfect for coding on the go, managing servers, or teaching programming on a tablet.</p>
 
-<p>
-You will be asked to enter a password for the first time.  
-Make sure to use a <strong>very strong password</strong>.  
-We are not responsible for any casualties caused by weak security.
-</p>
-
-<h2>How to make your own extension?</h2>
-<ol>
-  <li>
-    Join our Discord server:  
-    <a href="https://discord.gg/v3gcb7ptXg" target="_blank">https://discord.gg/v3gcb7ptXg</a>
-  </li>
-  <li>
-    Apply there to get access for extension development.
-  </li>
-  <li>
-    For any issues, contact staff on Discord.
-  </li>
-  <li>
-    Check our GitHub to understand the blueprint of how extensions are built.
-  </li>
-</ol>
-
-<h2>How can your extension be banned or cancelled?</h2>
-<ul>
-  <li>Your extension can be cancelled due to inappropriate name or description.</li>
-  <li>Only valid types are <strong>iframe</strong> and <strong>terminal</strong>. Others will be rejected.</li>
-  <li>Using inappropriate URLs, websites, or non-iframe-compatible pages will lead to cancellation.</li>
-  <li>Inappropriate icons are not allowed.</li>
-  <li>Using openIDE routes in backend is strictly prohibited and can lead to <strong>PERMANENT BAN</strong>.</li>
-  <li>Sending or storing user credentials (IP, password) is strictly prohibited and leads to <strong>PERMANENT BAN</strong>.</li>
-  <li>Changing extension version or code without proper update application leads to <strong>PERMANENT BAN</strong>.</li>
-  <li>Terminal extensions installing/uninstalling harmful or bad packages will be cancelled.</li>
-</ul>
-
+  <hr />
+  <p style="font-size: 0.85rem; color: #6b6a5e;">openIDE · minimal, secure, and built for real developers.</p>
 </div>
 
+<script>
+  (function() {
+    // attach copy functionality to all buttons with data-cmd attribute
+    const copyButtons = document.querySelectorAll('.copy-btn[data-cmd]');
+    copyButtons.forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        const command = this.getAttribute('data-cmd');
+        if (command) {
+          navigator.clipboard.writeText(command).then(() => {
+            const originalText = this.innerText;
+            this.innerText = '✓ Copied!';
+            setTimeout(() => {
+              this.innerText = originalText;
+            }, 1800);
+          }).catch(() => {
+            this.innerText = '⚠️ Error';
+            setTimeout(() => {
+              this.innerText = originalText;
+            }, 1200);
+          });
+        }
+        e.preventDefault();
+      });
+    });
+
+    // special copy for discord invite text (the visible span)
+    const discordSpan = document.querySelector('.discord-text');
+    const discordCopyBtn = document.getElementById('copyDiscordBtn');
+    if (discordSpan && discordCopyBtn) {
+      discordCopyBtn.addEventListener('click', function() {
+        const discordLink = discordSpan.innerText.trim(); // "discord.gg/v3gcb7ptXg"
+        navigator.clipboard.writeText(discordLink).then(() => {
+          const original = discordCopyBtn.innerText;
+          discordCopyBtn.innerText = '✓ Invite copied!';
+          setTimeout(() => {
+            discordCopyBtn.innerText = original;
+          }, 1800);
+        }).catch(() => {
+          discordCopyBtn.innerText = '⚠️ failed';
+          setTimeout(() => {
+            discordCopyBtn.innerText = '📋 Copy Discord invite';
+          }, 1200);
+        });
+      });
+    }
+
+    // also make discord text clickable to copy
+    if (discordSpan) {
+      discordSpan.style.cursor = 'pointer';
+      discordSpan.style.transition = 'background 0.1s';
+      discordSpan.addEventListener('click', function() {
+        const text = this.innerText.trim();
+        navigator.clipboard.writeText(text).then(() => {
+          const prevBg = this.style.background;
+          this.style.background = '#d4dfc9';
+          setTimeout(() => {
+            this.style.background = prevBg;
+          }, 200);
+          const originalText = discordCopyBtn ? discordCopyBtn.innerText : '';
+          if (discordCopyBtn) {
+            discordCopyBtn.innerText = '✓ Copied!';
+            setTimeout(() => {
+              discordCopyBtn.innerText = originalText;
+            }, 1500);
+          }
+        });
+      });
+    }
+  })();
+</script>
 </body>
 </html>
