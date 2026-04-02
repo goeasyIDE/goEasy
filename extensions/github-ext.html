@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>GitHub · openIDE</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0e0f14;--sb:#13141a;--accent:#7c6af7;--accent2:#a78bfa;
+  --adim:rgba(124,106,247,.14);--text:#dde1f0;--muted:#5e6479;
+  --border:#1e2030;--hover:#181924;--red:#f87171;--green:#34d399;
+  --yellow:#fbbf24;--glow:rgba(124,106,247,.25);
+  --code:'JetBrains Mono',monospace;--ui:'Inter',sans-serif;
+}
+html,body{width:100%;height:100%;overflow:hidden;font-family:var(--ui);background:var(--bg);color:var(--text)}
+
+/* ── HEADER ── */
+header{height:44px;background:var(--sb);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 14px;gap:10px;flex-shrink:0}
+.hdr-icon{width:28px;height:28px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.hdr-icon svg{width:15px;height:15px;fill:#fff}
+.hdr-title{font-size:13px;font-weight:600;letter-spacing:-.2px}
+.hdr-title span{color:var(--accent)}
+.ws-pill{margin-left:auto;display:flex;align-items:center;gap:5px;font-size:10.5px;color:var(--muted);background:var(--hover);border:1px solid var(--border);border-radius:20px;padding:2px 8px}
+.ws-dot{width:6px;height:6px;border-radius:50%;background:var(--red);transition:background .4s}
+.ws-dot.on{background:var(--green)}
+
+/* ── TABS ── */
+.tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
+.tab{flex:1;padding:9px 0;font-size:11.5px;font-weight:500;text-align:center;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;transition:color .15s,border-color .15s;user-select:none;display:flex;align-items:center;justify-content:center;gap:6px}
+.tab svg{width:13px;height:13px}
+.tab:hover{color:var(--text)}
+.tab.on{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* ── BODY ── */
+.body{display:flex;flex-direction:column;flex:1;overflow:hidden}
+.pane{display:none;flex-direction:column;flex:1;overflow:hidden;padding:14px}
+.pane.on{display:flex}
+
+/* ── FORM ── */
+.field{margin-bottom:11px}
+.field label{display:block;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
+.field input,.field textarea{width:100%;padding:9px 11px;background:var(--hover);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--code);font-size:12px;outline:none;transition:border-color .2s,box-shadow .2s;resize:none}
+.field input:focus,.field textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--glow)}
+.field input::placeholder,.field textarea::placeholder{color:var(--muted)}
+
+.action-btn{width:100%;padding:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:9px;color:#fff;font-family:var(--ui);font-size:13px;font-weight:600;cursor:pointer;transition:opacity .2s,transform .1s;box-shadow:0 3px 14px var(--glow);display:flex;align-items:center;justify-content:center;gap:7px;margin-bottom:12px}
+.action-btn:hover{opacity:.9}.action-btn:active{transform:scale(.98)}
+.action-btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.action-btn svg{width:14px;height:14px}
+.action-btn .spin{width:13px;height:13px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:sp .6s linear infinite;flex-shrink:0}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* ── LOG ── */
+.log-head{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:7px;display:flex;align-items:center;justify-content:space-between}
+.log-clr{font-size:10px;color:var(--muted);cursor:pointer;padding:1px 6px;border-radius:4px;border:1px solid var(--border);background:none;transition:color .15s,background .15s;font-family:var(--ui)}
+.log-clr:hover{color:var(--text);background:var(--hover)}
+.log{flex:1;overflow-y:auto;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:9px;padding:10px;font-family:var(--code);font-size:11.5px;line-height:1.65;min-height:0}
+.log::-webkit-scrollbar{width:3px}
+.log::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.log-line{margin-bottom:2px;word-break:break-word}
+.log-line.info{color:var(--accent)}
+.log-line.ok{color:var(--green)}
+.log-line.err{color:var(--red)}
+.log-line.warn{color:var(--yellow)}
+.log-line.muted{color:var(--muted)}
+.log-line.out{color:var(--text)}
+
+/* ── FILE CHIPS ── */
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px}
+.chip{padding:3px 9px;background:var(--adim);border:1px solid rgba(124,106,247,.25);border-radius:20px;font-size:10.5px;color:var(--accent);font-family:var(--code);display:flex;align-items:center;gap:4px}
+.chip svg{width:10px;height:10px;flex-shrink:0}
+.chips-label{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
+
+/* ── DIVIDER ── */
+.divider{height:1px;background:var(--border);margin:12px 0}
+
+/* ── NOT CONNECTED ── */
+#no-conn{display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px;height:100%;color:var(--muted);font-size:12px;text-align:center;padding:20px}
+#no-conn svg{width:36px;height:36px;opacity:.25}
+#no-conn p{max-width:200px;line-height:1.6;opacity:.7}
+</style>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+</head>
+<body style="display:flex;flex-direction:column;height:100%">
+
+<header>
+  <div class="hdr-icon">
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+  </div>
+  <div class="hdr-title"><span>Git</span> Hub</div>
+  <div class="ws-pill"><div class="ws-dot" id="wsDot"></div><span id="wsLabel">Connecting…</span></div>
+</header>
+
+<div class="tabs">
+  <div class="tab on" id="tab-clone" onclick="switchTab('clone')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    Clone
+  </div>
+  <div class="tab" id="tab-push" onclick="switchTab('push')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+    Push
+  </div>
+</div>
+
+<div class="body" id="mainBody">
+  <!-- CLONE PANE -->
+  <div class="pane on" id="pane-clone">
+    <div class="field">
+      <label>Repository URL</label>
+      <input id="cloneUrl" type="text" placeholder="https://github.com/user/repo.git"/>
+    </div>
+    <div class="field">
+      <label>Target Folder <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></label>
+      <input id="cloneDir" type="text" placeholder="Leave blank for repo name"/>
+    </div>
+    <button class="action-btn" id="cloneBtn" onclick="doClone()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Clone Repository
+    </button>
+    <div id="cloneChipsWrap" style="display:none">
+      <div class="chips-label">Cloned Files</div>
+      <div class="chips" id="cloneChips"></div>
+      <div class="divider"></div>
+    </div>
+    <div class="log-head">
+      Output
+      <button class="log-clr" onclick="clearLog('cloneLog')">Clear</button>
+    </div>
+    <div class="log" id="cloneLog"></div>
+  </div>
+
+  <!-- PUSH PANE -->
+  <div class="pane" id="pane-push">
+    <div class="field">
+      <label>Working Directory</label>
+      <input id="pushDir" type="text" placeholder="/repo-name or leave blank for /"/>
+    </div>
+    <div class="field">
+      <label>Commit Message</label>
+      <input id="commitMsg" type="text" placeholder="feat: update code"/>
+    </div>
+    <div class="field">
+      <label>Remote / Branch <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></label>
+      <input id="pushRemote" type="text" placeholder="origin main"/>
+    </div>
+    <button class="action-btn" id="pushBtn" onclick="doPush()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      Commit & Push
+    </button>
+    <div id="pushChipsWrap" style="display:none">
+      <div class="chips-label">Pushed Files</div>
+      <div class="chips" id="pushChips"></div>
+      <div class="divider"></div>
+    </div>
+    <div class="log-head">
+      Output
+      <button class="log-clr" onclick="clearLog('pushLog')">Clear</button>
+    </div>
+    <div class="log" id="pushLog"></div>
+  </div>
+</div>
+
+<div id="no-conn">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18.364 5.636a9 9 0 010 12.728M5.636 5.636a9 9 0 000 12.728M9 12h6m-3-3v6"/></svg>
+  <p>Not connected to openIDE server</p>
+</div>
+
+<script>
+const params=new URLSearchParams(location.search);
+const PASS=params.get('pass')||'';
+const IP=params.get('ip')||'localhost';
+
+let ws=null;
+let cmdQueue=[];
+let activeCmdCtx=null; // {log, resolve, reject, buffer}
+
+function log(logId,text,cls='out'){
+  const el=document.getElementById(logId);
+  if(!el)return;
+  const line=document.createElement('div');
+  line.className='log-line '+cls;
+  line.textContent=text;
+  el.appendChild(line);
+  el.scrollTop=el.scrollHeight;
+}
+
+function clearLog(logId){
+  const el=document.getElementById(logId);
+  if(el)el.innerHTML='';
+}
+
+function setConnected(v){
+  document.getElementById('wsDot').className='ws-dot'+(v?' on':'');
+  document.getElementById('wsLabel').textContent=v?'Connected':'Disconnected';
+  document.getElementById('mainBody').style.display=v?'flex':'none';
+  document.getElementById('no-conn').style.display=v?'none':'flex';
+}
+
+function connect(){
+  try{
+    ws=new WebSocket(`ws://${IP}:3000`);
+    ws.onopen=()=>{ setConnected(true); };
+    ws.onclose=()=>{ setConnected(false); setTimeout(connect,3000); };
+    ws.onerror=()=>{ setConnected(false); };
+    ws.onmessage=e=>{
+      try{ handleMsg(JSON.parse(e.data)); }catch(err){}
+    };
+  }catch(e){ setTimeout(connect,3000); }
+}
+
+function send(obj){
+  if(ws&&ws.readyState===WebSocket.OPEN)
+    ws.send(JSON.stringify({...obj,password:PASS}));
+}
+
+// Run a shell command, return promise that resolves with {stdout,stderr,code}
+function runCmd(cmd){
+  return new Promise((resolve,reject)=>{
+    const ctx={cmd,resolve,reject,stdout:'',stderr:''};
+    send({type:'command',command:cmd});
+    activeCmdCtx=ctx;
+  });
+}
+
+function handleMsg(msg){
+  // Route stdout/stderr to current active context + active log
+  if(msg.type==='stdout'||msg.type==='stderr'){
+    const text=msg.data||'';
+    if(activeCmdCtx){
+      if(msg.type==='stdout')activeCmdCtx.stdout+=text;
+      else activeCmdCtx.stderr+=text;
+    }
+    if(activeLog){
+      const lines=text.split('\n');
+      lines.forEach((l,i)=>{
+        if(i===lines.length-1&&!l)return;
+        log(activeLog,l,msg.type==='stderr'?'warn':'out');
+      });
+    }
+  }
+  if(msg.type==='exit'){
+    if(activeCmdCtx){
+      const ctx=activeCmdCtx;
+      activeCmdCtx=null;
+      ctx.resolve({stdout:ctx.stdout,stderr:ctx.stderr,code:msg.code||0});
+    }
+  }
+}
+
+let activeLog=null;
+
+// ── CLONE ──
+async function doClone(){
+  const url=document.getElementById('cloneUrl').value.trim();
+  const dir=document.getElementById('cloneDir').value.trim();
+  if(!url){flash('cloneLog','Enter a repository URL','err');return;}
+  if(!ws||ws.readyState!==WebSocket.OPEN){flash('cloneLog','Not connected','err');return;}
+
+  const btn=document.getElementById('cloneBtn');
+  btn.disabled=true;
+  btn.innerHTML='<div class="spin"></div> Cloning…';
+  clearLog('cloneLog');
+  document.getElementById('cloneChipsWrap').style.display='none';
+  document.getElementById('cloneChips').innerHTML='';
+
+  log('cloneLog',`$ git clone ${url}${dir?' '+dir:''}`, 'info');
+  activeLog='cloneLog';
+
+  const cmd=dir?`git clone "${url}" "${dir}"`:`git clone "${url}"`;
+  const {stdout,stderr,code}=await runCmd(cmd);
+  activeLog=null;
+
+  if(code===0){
+    log('cloneLog','✓ Clone successful!','ok');
+    // Extract cloned repo name / list files
+    const repoName=dir||(url.split('/').pop()||'').replace(/\.git$/,'');
+    activeLog='cloneLog';
+    const {stdout:ls}=await runCmd(`find "${repoName}" -not -path "*/.git/*" -not -name ".git" -type f 2>/dev/null | head -40`);
+    activeLog=null;
+    const files=ls.split('\n').map(l=>l.trim()).filter(Boolean);
+    if(files.length){
+      const chips=document.getElementById('cloneChips');
+      files.forEach(f=>{
+        const c=document.createElement('div');c.className='chip';
+        c.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>${esc(f.replace(repoName+'/',''))}`;
+        chips.appendChild(c);
+      });
+      document.getElementById('cloneChipsWrap').style.display='block';
+      log('cloneLog',`→ ${files.length} file(s) cloned`,'muted');
+    }
+  }else{
+    log('cloneLog','✗ Clone failed (exit '+code+')','err');
+  }
+
+  btn.disabled=false;
+  btn.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Clone Repository`;
+}
+
+// ── PUSH ──
+async function doPush(){
+  const dir=document.getElementById('pushDir').value.trim()||'/';
+  const msg=document.getElementById('commitMsg').value.trim();
+  const remote=document.getElementById('pushRemote').value.trim()||'origin main';
+  if(!msg){flash('pushLog','Enter a commit message','err');return;}
+  if(!ws||ws.readyState!==WebSocket.OPEN){flash('pushLog','Not connected','err');return;}
+
+  const btn=document.getElementById('pushBtn');
+  btn.disabled=true;
+  btn.innerHTML='<div class="spin"></div> Pushing…';
+  clearLog('pushLog');
+  document.getElementById('pushChipsWrap').style.display='none';
+  document.getElementById('pushChips').innerHTML='';
+
+  const cd=dir!=='/'?`cd "${dir}" && `:'';
+  const [rem,branch]=remote.split(' ');
+  const remotePart=rem||(remote||'origin');
+  const branchPart=branch||'main';
+
+  // Step 1: git status --short to get changed files
+  log('pushLog','$ git status --short','info');
+  activeLog='pushLog';
+  const {stdout:statusOut,code:sc}=await runCmd(`${cd}git status --short`);
+  activeLog=null;
+
+  const changedFiles=statusOut.split('\n').map(l=>l.trim()).filter(Boolean)
+    .map(l=>l.replace(/^[MADRCU? ]+\s*/,''));
+
+  // Step 2: add
+  log('pushLog',`$ git add .`,'info');
+  activeLog='pushLog';
+  await runCmd(`${cd}git add .`);
+  activeLog=null;
+
+  // Step 3: commit
+  log('pushLog',`$ git commit -m "${msg}"`,'info');
+  activeLog='pushLog';
+  const {code:cc,stderr:cStderr}=await runCmd(`${cd}git commit -m "${msg.replace(/"/g,'\\"')}"`);
+  activeLog=null;
+
+  if(cc!==0&&cStderr.includes('nothing to commit')){
+    log('pushLog','⚠ Nothing to commit','warn');
+    btn.disabled=false;resetPushBtn();
+    return;
+  }
+
+  // Step 4: push
+  log('pushLog',`$ git push ${remotePart} ${branchPart}`,'info');
+  activeLog='pushLog';
+  const {code:pc}=await runCmd(`${cd}git push ${remotePart} ${branchPart}`);
+  activeLog=null;
+
+  if(pc===0){
+    log('pushLog','✓ Pushed successfully!','ok');
+    if(changedFiles.length){
+      const chips=document.getElementById('pushChips');
+      changedFiles.slice(0,20).forEach(f=>{
+        const c=document.createElement('div');c.className='chip';
+        c.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>${esc(f)}`;
+        chips.appendChild(c);
+      });
+      document.getElementById('pushChipsWrap').style.display='block';
+      log('pushLog',`→ ${changedFiles.length} file(s) pushed`,'muted');
+    }
+  }else{
+    log('pushLog','✗ Push failed (exit '+pc+')','err');
+  }
+
+  btn.disabled=false;resetPushBtn();
+}
+
+function resetPushBtn(){
+  document.getElementById('pushBtn').innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Commit & Push`;
+}
+
+function flash(logId,msg,cls){
+  log(logId,msg,cls);
+}
+
+function switchTab(t){
+  document.querySelectorAll('.tab').forEach(el=>el.classList.remove('on'));
+  document.querySelectorAll('.pane').forEach(el=>el.classList.remove('on'));
+  document.getElementById('tab-'+t).classList.add('on');
+  document.getElementById('pane-'+t).classList.add('on');
+}
+
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+
+connect();
+</script>
+</body>
+</html>
