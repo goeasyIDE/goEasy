@@ -451,7 +451,7 @@ function onStdout(text){
 
   // step detection
   if(/Counting|Enumerating/i.test(text))   setStep('s-connect','active');
-  if(/Receiving objects/i.test(text)){      setStep('s-connect','done'); setStep('s-receive','active'); }
+  if(/Receiving objects/i.test(text)){    setStep('s-receive','active'); setStep('s-connect','done'); }
   if(/Resolving deltas|Checking out|Updating files/i.test(text)){ setStep('s-receive','done'); }
 }
 
