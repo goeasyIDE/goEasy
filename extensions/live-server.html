@@ -3,59 +3,115 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Live Server</title>
+  <title>Live Server · Auto‑refresh iframe</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      height: 100vh;
-      overflow: hidden;
-      background: #0f0f0f;
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
 
-    /* ── IFRAME LAYER ── */
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      height: 100vh;
+      overflow: hidden;
+      background: #0a0c0f;
+    }
+
     #iframe-layer {
       display: none;
       position: fixed;
       inset: 0;
       flex-direction: column;
+      background: #0f0f0f;
     }
-    #iframe-layer.active { display: flex; }
+    #iframe-layer.active {
+      display: flex;
+    }
 
     #site-frame {
       width: 100%;
       flex: 1;
       border: none;
+      background: white;
     }
 
     #change-bar {
-      background: #1a1a1a;
-      border-top: 1px solid #2a2a2a;
+      background: #111214;
+      border-top: 1px solid #2a2d34;
       padding: 10px 20px;
       display: flex;
       align-items: center;
-      justify-content: center;
-      gap: 6px;
+      justify-content: space-between;
       font-size: 13px;
-      color: #888;
+      color: #9aa0a8;
       flex-shrink: 0;
+      backdrop-filter: blur(2px);
     }
 
-    #change-bar span { color: #888; }
+    .left-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .live-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #1e2a2a;
+      padding: 4px 10px;
+      border-radius: 40px;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.3px;
+      color: #6fcf97;
+    }
+    .live-badge .pulse {
+      width: 8px;
+      height: 8px;
+      background: #3fe08b;
+      border-radius: 50%;
+      display: inline-block;
+      box-shadow: 0 0 5px #3fe08b;
+      animation: pulse-glow 1.4s infinite ease-out;
+    }
+    @keyframes pulse-glow {
+      0% { opacity: 0.5; transform: scale(0.8); }
+      100% { opacity: 1; transform: scale(1.2); background: #6effa8; box-shadow: 0 0 8px #6effa8; }
+    }
+
     #change-url-btn {
       color: #5b9cf6;
       cursor: pointer;
       background: none;
       border: none;
-      font-size: 13px;
-      padding: 0;
-      text-decoration: underline;
-      text-underline-offset: 2px;
+      font-size: 12.5px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      transition: all 0.2s;
+      font-weight: 500;
     }
-    #change-url-btn:hover { color: #7db4ff; }
+    #change-url-btn:hover {
+      background: #1f2937;
+      color: #7db4ff;
+    }
 
-    /* ── BLUR OVERLAY ── */
+    .auto-refresh-status {
+      font-size: 12px;
+      background: #1a1c22;
+      padding: 4px 12px;
+      border-radius: 40px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #b9c3d4;
+    }
+    .refresh-icon-symbol {
+      font-size: 13px;
+      display: inline-block;
+    }
+
     #setup-overlay {
       display: none;
       position: fixed;
@@ -64,17 +120,18 @@
       align-items: center;
       justify-content: center;
     }
-    #setup-overlay.active { display: flex; }
+    #setup-overlay.active {
+      display: flex;
+    }
 
     #blur-bg {
       position: absolute;
       inset: 0;
-      background: rgba(10, 10, 10, 0.75);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
+      background: rgba(8, 10, 14, 0.86);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
     }
 
-    /* ── SETUP CARD ── */
     #setup-card {
       position: relative;
       z-index: 101;
@@ -82,212 +139,344 @@
       flex-direction: column;
       align-items: center;
       gap: 0;
+      background: rgba(18, 22, 28, 0.75);
+      backdrop-filter: blur(12px);
+      padding: 40px 42px;
+      border-radius: 48px;
+      border: 1px solid rgba(75, 85, 99, 0.4);
+      box-shadow: 0 25px 40px -12px rgba(0,0,0,0.5);
+      width: 380px;
+      transition: all 0.2s;
     }
 
     #ls-icon {
-      width: 72px;
-      height: 72px;
+      width: 68px;
+      height: 68px;
       object-fit: contain;
     }
 
     #setup-label {
-      margin-top: 24px;
-      font-size: 17px;
+      margin-top: 22px;
+      font-size: 18px;
       font-weight: 500;
-      color: #e8e8e8;
-      letter-spacing: 0.01em;
-      transition: opacity 0.25s, transform 0.25s;
+      color: #f0f3fa;
+      letter-spacing: -0.2px;
+      transition: opacity 0.2s, transform 0.2s;
     }
 
-    #url-input-wrap {
+    #url-input-wrap, #inline-change-wrap {
+      width: 100%;
       display: none;
-      margin-top: 24px;
+      margin-top: 28px;
     }
-    #url-input-wrap.visible { display: block; }
+    #url-input-wrap.visible, #inline-change-wrap.visible {
+      display: block;
+    }
 
-    #url-input {
-      width: 300px;
-      padding: 10px 14px;
-      background: #1e1e1e;
-      border: 1px solid #333;
-      border-radius: 8px;
-      color: #e8e8e8;
+    #url-input, #inline-url-input {
+      width: 100%;
+      padding: 12px 16px;
+      background: #0f1117;
+      border: 1px solid #2d313a;
+      border-radius: 44px;
+      color: #f1f3f8;
       font-size: 14px;
       outline: none;
-      transition: border-color 0.2s;
+      transition: all 0.2s;
+      font-family: monospace;
     }
-    #url-input:focus { border-color: #5b9cf6; }
-    #url-input::placeholder { color: #555; }
+    #url-input:focus, #inline-url-input:focus {
+      border-color: #5b9cf6;
+      box-shadow: 0 0 0 2px rgba(91, 156, 246, 0.2);
+    }
 
     #continue-btn {
-      margin-top: 28px;
-      padding: 10px 32px;
+      margin-top: 32px;
+      padding: 10px 28px;
       background: #5b9cf6;
-      color: #fff;
+      color: white;
       border: none;
-      border-radius: 8px;
+      border-radius: 60px;
       font-size: 14px;
       font-weight: 500;
       cursor: pointer;
-      transition: background 0.2s, transform 0.1s;
+      transition: 0.2s;
+      width: auto;
+      min-width: 140px;
     }
-    #continue-btn:hover { background: #4a8de4; }
-    #continue-btn:active { transform: scale(0.97); }
+    #continue-btn:hover {
+      background: #4a8de4;
+      transform: scale(0.98);
+    }
 
-    /* inline change-url flow (shown inside overlay if triggered from bar) */
-    #inline-change-wrap {
-      display: none;
-      margin-top: 24px;
+    .note-text {
+      margin-top: 20px;
+      font-size: 11px;
+      color: #6c7283;
+      text-align: center;
     }
-    #inline-change-wrap.visible { display: block; }
-
-    #inline-url-input {
-      width: 300px;
-      padding: 10px 14px;
-      background: #1e1e1e;
-      border: 1px solid #333;
-      border-radius: 8px;
-      color: #e8e8e8;
-      font-size: 14px;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-    #inline-url-input:focus { border-color: #5b9cf6; }
-    #inline-url-input::placeholder { color: #555; }
   </style>
 </head>
 <body>
 
-  <!-- MAIN IFRAME VIEW -->
   <div id="iframe-layer">
-    <iframe id="site-frame" src="" allowfullscreen></iframe>
+    <iframe id="site-frame" src="" allowfullscreen sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals allow-top-navigation allow-downloads"></iframe>
     <div id="change-bar">
-      <span>Not the website you wanted?</span>
-      <button id="change-url-btn">Click here</button>
+      <div class="left-actions">
+        <div class="live-badge">
+          <span class="pulse"></span>
+          <span>LIVE RELOAD</span>
+        </div>
+        <div class="auto-refresh-status" id="refresh-status-badge">
+          <span class="refresh-icon-symbol">🔄</span>
+          <span id="refresh-mode-text">auto‑refresh on change</span>
+        </div>
+      </div>
+      <button id="change-url-btn">✎ change website</button>
     </div>
   </div>
 
-  <!-- SETUP OVERLAY -->
   <div id="setup-overlay">
     <div id="blur-bg"></div>
     <div id="setup-card">
-      <img id="ls-icon" src="../img/live-server.png" alt="Live Server" onerror="this.style.display='none'; document.getElementById('ls-icon-fallback').style.display='flex'"/>
-      <div id="ls-icon-fallback" style="display:none;width:72px;height:72px;background:#1e3a5f;border-radius:16px;align-items:center;justify-content:center;">
-        <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
-          <circle cx="12" cy="12" r="10" stroke="#5b9cf6" stroke-width="1.5"/>
-          <path d="M8 12l2.5 2.5L16 9" stroke="#5b9cf6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <div id="icon-container">
+        <svg width="68" height="68" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="16" cy="16" r="13" stroke="#5b9cf6" stroke-width="1.6"/>
+          <path d="M10 16L14 20L22 12" stroke="#5b9cf6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M24 26L28 28L26 24" stroke="#6c8eff" stroke-width="1.4" stroke-linecap="round"/>
+          <circle cx="26" cy="26" r="2" fill="#5b9cf6" fill-opacity="0.5" stroke="#5b9cf6" stroke-width="1"/>
         </svg>
       </div>
-
       <div id="setup-label">Let's get you set up</div>
-
       <div id="url-input-wrap">
-        <input id="url-input" type="url" placeholder="Enter your website URL" autocomplete="off" />
+        <input id="url-input" type="url" placeholder="https:// or http:// ..." autocomplete="off" spellcheck="false"/>
       </div>
-
-      <!-- Change-URL mode input -->
       <div id="inline-change-wrap">
-        <input id="inline-url-input" type="url" placeholder="Enter new website URL" autocomplete="off" />
+        <input id="inline-url-input" type="url" placeholder="https://example.com" autocomplete="off" spellcheck="false"/>
       </div>
-
       <button id="continue-btn">Continue</button>
+      <div class="note-text">auto‑refresh will keep iframe updated when code changes</div>
     </div>
   </div>
 
   <script>
-    const LS_KEY = 'live-server-extension-url';
-    let step = 1;
-    let changeMode = false;
-
-    const iframeLayer   = document.getElementById('iframe-layer');
-    const setupOverlay  = document.getElementById('setup-overlay');
-    const siteFrame     = document.getElementById('site-frame');
-    const setupLabel    = document.getElementById('setup-label');
-    const urlInputWrap  = document.getElementById('url-input-wrap');
-    const urlInput      = document.getElementById('url-input');
-    const inlineChangeWrap = document.getElementById('inline-change-wrap');
-    const inlineUrlInput   = document.getElementById('inline-url-input');
-    const continueBtn   = document.getElementById('continue-btn');
-    const changeUrlBtn  = document.getElementById('change-url-btn');
-
-    function normalizeUrl(raw) {
-      raw = raw.trim();
-      if (!raw) return null;
-      if (!/^https?:\/\//i.test(raw)) raw = 'https://' + raw;
-      try { new URL(raw); return raw; } catch { return null; }
-    }
-
-    function loadSite(url) {
-      siteFrame.src = url;
-      setupOverlay.classList.remove('active');
-      iframeLayer.classList.add('active');
-    }
-
-    function showSetup() {
-      changeMode = false;
-      step = 1;
-      setupLabel.textContent = "Let's get you set up";
-      setupLabel.style.display = 'block';
-      urlInputWrap.classList.remove('visible');
-      inlineChangeWrap.classList.remove('visible');
-      setupOverlay.classList.add('active');
-    }
-
-    function showChangeMode() {
-      changeMode = true;
-      setupLabel.textContent = 'Change your website URL';
-      urlInputWrap.classList.remove('visible');
-      inlineChangeWrap.classList.add('visible');
-      inlineUrlInput.value = '';
-      setupOverlay.classList.add('active');
-      setTimeout(() => inlineUrlInput.focus(), 50);
-    }
-
-    continueBtn.addEventListener('click', () => {
-      if (changeMode) {
-        const raw = inlineUrlInput.value;
-        const url = normalizeUrl(raw);
-        if (!url) { inlineUrlInput.style.border = '1px solid #e24b4a'; return; }
-        inlineUrlInput.style.border = '1px solid #333';
-        localStorage.setItem(LS_KEY, url);
-        loadSite(url);
-        return;
+    (function() {
+      const LS_KEY = 'live-server-extension-url';
+      let step = 1;
+      let changeMode = false;
+      
+      const iframeLayer   = document.getElementById('iframe-layer');
+      const setupOverlay  = document.getElementById('setup-overlay');
+      const siteFrame     = document.getElementById('site-frame');
+      const setupLabel    = document.getElementById('setup-label');
+      const urlInputWrap  = document.getElementById('url-input-wrap');
+      const urlInput      = document.getElementById('url-input');
+      const inlineChangeWrap = document.getElementById('inline-change-wrap');
+      const inlineUrlInput   = document.getElementById('inline-url-input');
+      const continueBtn   = document.getElementById('continue-btn');
+      const changeUrlBtn  = document.getElementById('change-url-btn');
+      const refreshModeSpan = document.getElementById('refresh-mode-text');
+      
+      let currentReloadChannel = null;
+      
+      function refreshIframe() {
+        if (!iframeLayer.classList.contains('active')) return;
+        const currentSrc = siteFrame.src;
+        if (currentSrc && currentSrc !== 'about:blank') {
+          const temp = currentSrc;
+          siteFrame.src = 'about:blank';
+          setTimeout(() => {
+            siteFrame.src = temp;
+          }, 30);
+          updateRefreshBadge('reloading ...', true);
+          setTimeout(() => updateRefreshBadge('auto‑refresh on change', false), 1200);
+        }
       }
-
-      if (step === 1) {
-        step = 2;
-        setupLabel.style.opacity = '0';
-        setupLabel.style.transform = 'translateY(-8px)';
-        setTimeout(() => {
-          setupLabel.style.display = 'none';
-          urlInputWrap.classList.add('visible');
-          setTimeout(() => urlInput.focus(), 50);
-        }, 220);
-        return;
+      
+      function updateRefreshBadge(text, isFlash = false) {
+        if (refreshModeSpan) {
+          refreshModeSpan.textContent = text;
+          if (isFlash) {
+            const badgeParent = document.querySelector('.auto-refresh-status');
+            if (badgeParent) badgeParent.style.opacity = '0.7';
+            setTimeout(() => { if (badgeParent) badgeParent.style.opacity = '1'; }, 400);
+          }
+        }
       }
-
-      if (step === 2) {
-        const raw = urlInput.value;
-        const url = normalizeUrl(raw);
-        if (!url) { urlInput.style.border = '1px solid #e24b4a'; return; }
-        urlInput.style.border = '1px solid #333';
-        localStorage.setItem(LS_KEY, url);
-        loadSite(url);
+      
+      function initAutoReloadSystem() {
+        try {
+          if (currentReloadChannel) currentReloadChannel.close();
+          currentReloadChannel = new BroadcastChannel('live_server_reload_channel');
+          currentReloadChannel.onmessage = (event) => {
+            if (event.data && (event.data.type === 'reload' || event.data === 'reload')) {
+              refreshIframe();
+            } else if (event.data && event.data.action === 'code-change') {
+              refreshIframe();
+            }
+          };
+        } catch(e) {}
+        
+        window.addEventListener('storage', (e) => {
+          if (e.key === 'live_reload_trigger' || e.key === 'live-server-force-refresh') {
+            refreshIframe();
+            if (e.key === 'live_reload_trigger') localStorage.removeItem('live_reload_trigger');
+          }
+        });
+        
+        window.addEventListener('liveserver:refresh', () => refreshIframe());
+        
+        window.triggerLiveReload = function(message) {
+          refreshIframe();
+        };
+        
+        window.addEventListener('message', (event) => {
+          if (event.data && (event.data.type === 'code-updated' || event.data === 'refresh-iframe')) {
+            refreshIframe();
+          }
+        });
+        
+        updateRefreshBadge('auto‑refresh on change', false);
       }
-    });
-
-    urlInput.addEventListener('keydown', e => { if (e.key === 'Enter') continueBtn.click(); });
-    inlineUrlInput.addEventListener('keydown', e => { if (e.key === 'Enter') continueBtn.click(); });
-
-    changeUrlBtn.addEventListener('click', () => showChangeMode());
-
-    // Init
-    const saved = localStorage.getItem(LS_KEY);
-    if (saved) {
-      loadSite(saved);
-    } else {
-      showSetup();
-    }
+      
+      document.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && e.altKey && e.key === 'r') {
+          e.preventDefault();
+          refreshIframe();
+          updateRefreshBadge('manual refresh', true);
+          setTimeout(() => updateRefreshBadge('auto‑refresh on change', false), 1000);
+        }
+      });
+      
+      function normalizeUrl(raw) {
+        raw = raw.trim();
+        if (!raw) return null;
+        if (!/^https?:\/\//i.test(raw)) raw = 'https://' + raw;
+        try {
+          new URL(raw);
+          return raw;
+        } catch { return null; }
+      }
+      
+      function loadSite(url) {
+        if (!url) return;
+        siteFrame.src = url;
+        setupOverlay.classList.remove('active');
+        iframeLayer.classList.add('active');
+        updateRefreshBadge('auto‑refresh on change', false);
+      }
+      
+      function showSetup() {
+        changeMode = false;
+        step = 1;
+        setupLabel.style.display = 'block';
+        setupLabel.style.opacity = '1';
+        setupLabel.style.transform = 'translateY(0px)';
+        setupLabel.textContent = "Let's get you set up";
+        urlInputWrap.classList.remove('visible');
+        inlineChangeWrap.classList.remove('visible');
+        setupOverlay.classList.add('active');
+        iframeLayer.classList.remove('active');
+      }
+      
+      function showChangeMode() {
+        changeMode = true;
+        setupLabel.style.display = 'block';
+        setupLabel.style.opacity = '1';
+        setupLabel.textContent = 'Change website URL';
+        urlInputWrap.classList.remove('visible');
+        inlineChangeWrap.classList.add('visible');
+        inlineUrlInput.value = '';
+        setupOverlay.classList.add('active');
+        iframeLayer.classList.remove('active');
+        setTimeout(() => inlineUrlInput.focus(), 80);
+      }
+      
+      continueBtn.addEventListener('click', () => {
+        if (changeMode) {
+          const raw = inlineUrlInput.value;
+          const url = normalizeUrl(raw);
+          if (!url) {
+            inlineUrlInput.style.border = '1px solid #e24b4a';
+            return;
+          }
+          inlineUrlInput.style.border = '1px solid #2d313a';
+          localStorage.setItem(LS_KEY, url);
+          loadSite(url);
+          return;
+        }
+        
+        if (step === 1) {
+          step = 2;
+          setupLabel.style.opacity = '0';
+          setupLabel.style.transform = 'translateY(-8px)';
+          setTimeout(() => {
+            setupLabel.style.display = 'none';
+            urlInputWrap.classList.add('visible');
+            setTimeout(() => urlInput.focus(), 60);
+          }, 200);
+          return;
+        }
+        
+        if (step === 2) {
+          const raw = urlInput.value;
+          const url = normalizeUrl(raw);
+          if (!url) {
+            urlInput.style.border = '1px solid #e24b4a';
+            return;
+          }
+          urlInput.style.border = '1px solid #2d313a';
+          localStorage.setItem(LS_KEY, url);
+          loadSite(url);
+        }
+      });
+      
+      urlInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') continueBtn.click(); });
+      inlineUrlInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') continueBtn.click(); });
+      changeUrlBtn.addEventListener('click', () => showChangeMode());
+      
+      siteFrame.addEventListener('error', () => {
+        if (iframeLayer.classList.contains('active')) {
+          updateRefreshBadge('⚠️ load error', true);
+          setTimeout(() => updateRefreshBadge('auto‑refresh on change', false), 2000);
+        }
+      });
+      
+      siteFrame.addEventListener('load', () => {
+        if (iframeLayer.classList.contains('active')) {
+          updateRefreshBadge('connected · auto‑refresh', false);
+        }
+      });
+      
+      initAutoReloadSystem();
+      
+      const devHint = document.createElement('div');
+      devHint.textContent = '⚡ dev: Ctrl+Alt+R → force refresh · window.triggerLiveReload()';
+      devHint.style.position = 'fixed';
+      devHint.style.bottom = '8px';
+      devHint.style.right = '12px';
+      devHint.style.fontSize = '10px';
+      devHint.style.backgroundColor = '#1a1c22cc';
+      devHint.style.color = '#aaa';
+      devHint.style.padding = '4px 12px';
+      devHint.style.borderRadius = '20px';
+      devHint.style.zIndex = '1000';
+      devHint.style.backdropFilter = 'blur(4px)';
+      devHint.style.pointerEvents = 'none';
+      devHint.style.fontFamily = 'monospace';
+      document.body.appendChild(devHint);
+      
+      const saved = localStorage.getItem(LS_KEY);
+      if (saved) {
+        loadSite(saved);
+      } else {
+        showSetup();
+      }
+      
+      window.__demoCodeChange = function() {
+        refreshIframe();
+      };
+    })();
   </script>
 </body>
-      </html>
+</html>
