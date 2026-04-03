@@ -451,7 +451,7 @@ function onStdout(text){
 
   // step detection
   if(/Counting|Enumerating/i.test(text))   setStep('s-connect','active');
-  location.reload(true);
+  
   if(/Receiving objects/i.test(text)){    setStep('s-receive','active'); setStep('s-connect','done'); }
   if(/Resolving deltas|Checking out|Updating files/i.test(text)){ setStep('s-receive','done'); }
 }
@@ -479,10 +479,10 @@ function setProgress(pct){
   document.getElementById('progFill').style.width = pct + '%';
   document.getElementById('progPct').textContent  = pct + '%';
   const lbl = document.getElementById('progLabel');
-  if(pct < 20)      lbl.textContent = 'Connecting to remote…';
-  else if(pct < 55) lbl.textContent = 'Receiving objects…';
-  else if(pct < 85) lbl.textContent = 'Resolving deltas…';
-  else              lbl.textContent = 'Checking out files…';
+  if(pct < 20)    {  lbl.textContent = 'Connecting to remote…'; location.reload(true);}
+  else if(pct < 55){ lbl.textContent = 'clone successfull waiting for reload…';}
+  else if(pct < 85){ lbl.textContent = 'Resolving deltas…';}
+  else        {      lbl.textContent = 'Checking out files…';}
 }
 
 /* ── STATUS CARD ── */
