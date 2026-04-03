@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>GitHub Clone</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d1117;
+  --surface:#161b22;
+  --surface2:#1c2128;
+  --border:#30363d;
+  --border2:#21262d;
+  --text:#e6edf3;
+  --muted:#7d8590;
+  --subtle:#484f58;
+  --blue:#58a6ff;
+  --blue-dim:rgba(88,166,255,.08);
+  --blue-brd:rgba(88,166,255,.25);
+  --green:#3fb950;
+  --green-dim:rgba(63,185,80,.09);
+  --green-brd:rgba(63,185,80,.3);
+  --red:#f85149;
+  --red-dim:rgba(248,81,73,.09);
+  --red-brd:rgba(248,81,73,.28);
+  --orange:#e3b341;
+  --purple:#bc8cff;
+  --code:'JetBrains Mono',monospace;
+  --ui:'Inter',sans-serif;
+}
+
+html,body{
+  width:100%;height:100%;overflow:hidden;
+  font-family:var(--ui);background:var(--bg);color:var(--text);
+}
+
+/* scrollbar */
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:var(--subtle)}
+
+/* layout — narrow column */
+.app{
+  display:flex;flex-direction:column;
+  height:100%;width:100%;
+  max-width:290px;margin:0 auto;
+}
+
+/* ── HEADER ── */
+.hdr{
+  flex-shrink:0;
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  padding:12px 13px 11px;
+}
+.hdr-top{display:flex;align-items:center;gap:9px;margin-bottom:9px}
+.gh-logo{
+  width:28px;height:28px;border-radius:50%;
+  background:var(--bg);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.gh-logo svg{width:16px;height:16px;fill:var(--text)}
+.hdr-info{flex:1;min-width:0}
+.hdr-title{font-size:12.5px;font-weight:600;line-height:1.25;letter-spacing:-.1px}
+.hdr-sub{font-size:10px;color:var(--muted);margin-top:1px}
+.conn-pill{
+  display:flex;align-items:center;gap:4px;
+  padding:2px 7px;background:var(--surface2);
+  border:1px solid var(--border2);border-radius:20px;
+  font-size:9.5px;color:var(--muted);flex-shrink:0;
+}
+.conn-dot{width:5px;height:5px;border-radius:50%;background:var(--red);transition:background .4s;flex-shrink:0}
+.conn-dot.on{background:var(--green);box-shadow:0 0 5px rgba(63,185,80,.6)}
+.branch-bar{
+  display:flex;align-items:center;gap:6px;
+  padding:5px 9px;
+  background:var(--bg);
+  border:1px solid var(--border2);border-radius:6px;
+  font-size:10.5px;color:var(--muted);font-family:var(--code);
+}
+.branch-bar svg{width:11px;height:11px;flex-shrink:0;color:var(--purple)}
+#branchName{color:var(--text);font-weight:500}
+.branch-badge{
+  margin-left:auto;font-size:9px;
+  padding:1px 5px;border-radius:3px;
+  background:var(--surface2);border:1px solid var(--border2);
+  color:var(--subtle);
+}
+
+/* ── SCROLL CONTAINER ── */
+.scroll{flex:1;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column}
+
+/* ── SECTIONS ── */
+.sec{padding:11px 13px;border-bottom:1px solid var(--border2);flex-shrink:0}
+
+/* ── FIELDS ── */
+.field{margin-bottom:9px}
+.field:last-of-type{margin-bottom:0}
+.lbl{
+  display:flex;align-items:center;gap:5px;
+  font-size:10px;font-weight:600;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.65px;margin-bottom:5px;
+}
+.lbl svg{width:10px;height:10px;flex-shrink:0}
+.tag-opt{
+  margin-left:auto;font-size:8.5px;font-weight:400;
+  text-transform:none;letter-spacing:0;color:var(--subtle);
+  background:var(--surface2);padding:1px 5px;
+  border-radius:3px;border:1px solid var(--border2);
+}
+.inp{
+  width:100%;padding:7px 9px;
+  background:var(--bg);border:1px solid var(--border);border-radius:6px;
+  color:var(--text);font-family:var(--code);font-size:11.5px;
+  outline:none;transition:border-color .15s,box-shadow .15s;
+}
+.inp:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(88,166,255,.14)}
+.inp::placeholder{color:var(--subtle)}
+
+/* ── CLONE BUTTON ── */
+.clone-btn{
+  width:100%;margin-top:10px;padding:8px;
+  background:#238636;border:1px solid rgba(63,185,80,.4);border-radius:6px;
+  color:#fff;font-family:var(--ui);font-size:12.5px;font-weight:500;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;
+  transition:background .15s,opacity .2s;
+  box-shadow:0 1px 0 rgba(255,255,255,.05) inset;
+}
+.clone-btn:hover:not(:disabled){background:#2ea043}
+.clone-btn:active:not(:disabled){background:#1a7f37;transform:scale(.99)}
+.clone-btn:disabled{opacity:.48;cursor:not-allowed}
+.clone-btn svg{width:13px;height:13px;flex-shrink:0}
+.spin{
+  width:12px;height:12px;flex-shrink:0;
+  border:2px solid rgba(255,255,255,.22);
+  border-top-color:#fff;border-radius:50%;
+  animation:rot .65s linear infinite;
+}
+@keyframes rot{to{transform:rotate(360deg)}}
+
+/* ── PROGRESS ── */
+.prog-wrap{margin-top:9px;display:none}
+.prog-meta{
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:10px;font-family:var(--code);color:var(--muted);margin-bottom:5px;
+}
+#progPct{color:var(--blue)}
+.prog-track{
+  height:3px;background:var(--surface2);
+  border-radius:3px;overflow:hidden;border:1px solid var(--border2);
+}
+.prog-fill{
+  height:100%;width:0%;border-radius:3px;
+  background:linear-gradient(90deg,var(--blue),var(--purple));
+  transition:width .35s ease;
+}
+
+/* ── STEPS ── */
+.steps-wrap{margin-top:9px;display:none;flex-direction:column;gap:5px}
+.step{
+  display:flex;align-items:center;gap:8px;
+  padding:6px 9px;border-radius:6px;
+  background:var(--surface2);border:1px solid var(--border2);
+  font-size:11px;color:var(--muted);
+  transition:background .2s,border-color .2s,color .2s;
+}
+.step.active{background:var(--blue-dim);border-color:var(--blue-brd);color:var(--text)}
+.step.done{background:var(--green-dim);border-color:var(--green-brd);color:var(--green)}
+.step.fail{background:var(--red-dim);border-color:var(--red-brd);color:var(--red)}
+.step-icon{width:14px;height:14px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.step-icon .s-spin{
+  width:11px;height:11px;
+  border:1.5px solid rgba(88,166,255,.3);
+  border-top-color:var(--blue);border-radius:50%;
+  animation:rot .65s linear infinite;
+}
+.step-icon .s-check{color:var(--green)}
+.step-icon .s-x{color:var(--red)}
+.step-icon .s-wait{width:7px;height:7px;border-radius:50%;background:var(--subtle);margin:auto}
+
+/* ── STATUS CARD ── */
+.status-card{
+  margin-top:9px;padding:8px 10px;border-radius:6px;border:1px solid;
+  font-size:11.5px;display:none;align-items:center;gap:8px;line-height:1.4;
+}
+.status-card.ok{background:var(--green-dim);border-color:var(--green-brd);color:var(--green)}
+.status-card.err{background:var(--red-dim);border-color:var(--red-brd);color:var(--red)}
+.status-card svg{width:13px;height:13px;flex-shrink:0}
+
+/* ── FILE LIST ── */
+.files-sec{display:none;padding:10px 13px;border-bottom:1px solid var(--border2);flex-shrink:0}
+.sec-head{
+  display:flex;align-items:center;gap:6px;margin-bottom:8px;
+  font-size:10px;font-weight:600;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.65px;
+}
+.sec-head svg{width:10px;height:10px}
+.f-count{
+  margin-left:auto;padding:1px 6px;
+  background:var(--blue-dim);border:1px solid var(--blue-brd);
+  border-radius:10px;font-size:9.5px;color:var(--blue);font-family:var(--code);
+}
+.file-list{max-height:165px;overflow-y:auto}
+.fitem{
+  display:flex;align-items:center;gap:6px;padding:3px 5px;
+  border-radius:4px;font-size:10.5px;font-family:var(--code);
+  color:var(--text);transition:background .1s;cursor:default;
+}
+.fitem:hover{background:var(--surface2)}
+.fitem svg{width:10px;height:10px;flex-shrink:0}
+/* lang colours */
+.c-js{color:#f1e05a}.c-ts{color:#3178c6}.c-py{color:#3572a5}
+.c-rb{color:#701516}.c-go{color:#00add8}.c-rs{color:#dea584}
+.c-html{color:#e34c26}.c-css{color:#563d7c}.c-md{color:var(--muted)}
+.c-json{color:#e9c46a}.c-sh{color:var(--green)}.c-def{color:var(--subtle)}
+.fname{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fext{
+  font-size:8.5px;color:var(--subtle);padding:1px 4px;
+  border-radius:3px;background:var(--surface2);
+  border:1px solid var(--border2);flex-shrink:0;
+}
+
+/* ── SUMMARY ROW ── */
+.summary{
+  margin-top:9px;padding:7px 10px;
+  background:var(--surface2);border:1px solid var(--border2);
+  border-radius:6px;font-size:11px;color:var(--muted);
+  display:none;align-items:center;gap:8px;
+}
+.summary svg{width:11px;height:11px;flex-shrink:0;color:var(--blue)}
+.sum-val{color:var(--text);font-weight:500;font-family:var(--code)}
+
+/* ── NO CONN ── */
+#noConn{
+  display:none;position:absolute;inset:0;z-index:30;
+  flex-direction:column;align-items:center;justify-content:center;
+  gap:11px;background:var(--bg);text-align:center;padding:24px;
+}
+#noConn svg{width:38px;height:38px;fill:var(--subtle);opacity:.55}
+.nc-t{font-size:12.5px;font-weight:500;color:var(--muted)}
+.nc-s{font-size:11px;color:var(--subtle);max-width:175px;line-height:1.6}
+.retry-btn{
+  padding:5px 14px;background:var(--surface);
+  border:1px solid var(--border);border-radius:6px;
+  color:var(--text);font-size:11.5px;font-family:var(--ui);
+  cursor:pointer;transition:background .15s;margin-top:3px;
+}
+.retry-btn:hover{background:var(--surface2)}
+</style>
+</head>
+<body style="position:relative;height:100%">
+
+<!-- NOT CONNECTED OVERLAY -->
+<div id="noConn">
+  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+  </svg>
+  <div class="nc-t">Not connected</div>
+  <div class="nc-s">Waiting for openIDE WebSocket…</div>
+  <button class="retry-btn" onclick="connect()">↺ Retry</button>
+</div>
+
+<!-- MAIN APP -->
+<div class="app" id="mainApp" style="visibility:hidden">
+
+  <!-- HEADER -->
+  <div class="hdr">
+    <div class="hdr-top">
+      <div class="gh-logo">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+        </svg>
+      </div>
+      <div class="hdr-info">
+        <div class="hdr-title">GitHub Clone</div>
+        <div class="hdr-sub">Clone any repository to workspace</div>
+      </div>
+      <div class="conn-pill">
+        <div class="conn-dot" id="connDot"></div>
+        <span id="connLabel">—</span>
+      </div>
+    </div>
+
+    <!-- branch indicator -->
+    <div class="branch-bar">
+      <!-- git branch icon -->
+      <svg viewBox="0 0 16 16" fill="currentColor" style="color:var(--purple)">
+        <path d="M9.5 3.25a2.25 2.25 0 113.75 1.667V8.5a.75.75 0 01-.75.75h-3.25a.25.25 0 00-.25.25v1.083a2.25 2.25 0 11-1.5 0V9.5a1.75 1.75 0 011.75-1.75H12V4.917A2.25 2.25 0 019.5 3.25zM6.25 14.25a.75.75 0 100-1.5.75.75 0 000 1.5zM12.75 3.25a.75.75 0 100 1.5.75.75 0 000-1.5z"/>
+      </svg>
+      <span id="branchName">main</span>
+      <span class="branch-badge">default branch</span>
+    </div>
+  </div>
+
+  <!-- SCROLL AREA -->
+  <div class="scroll">
+
+    <!-- INPUTS -->
+    <div class="sec">
+      <div class="field">
+        <div class="lbl">
+          <!-- repo icon -->
+          <svg viewBox="0 0 16 16" fill="currentColor">
+            <path d="M2 2.5A2.5 2.5 0 014.5 0h8.75a.75.75 0 01.75.75v12.5a.75.75 0 01-.75.75h-2.5a.75.75 0 110-1.5h1.75v-2h-8a1 1 0 00-.714 1.7.75.75 0 01-1.072 1.05A2.495 2.495 0 012 11.5v-9zm10.5-1V9h-8c-.356 0-.694.074-1 .208V2.5a1 1 0 011-1h8z"/>
+          </svg>
+          Repository URL
+        </div>
+        <input class="inp" id="cloneUrl" type="text"
+          placeholder="https://github.com/user/repo.git"
+          spellcheck="false" autocomplete="off" autocorrect="off"
+          oninput="onUrlInput(this.value)"/>
+      </div>
+
+      <div class="field">
+        <div class="lbl">
+          <!-- folder icon -->
+          <svg viewBox="0 0 16 16" fill="currentColor">
+            <path d="M1.75 1A1.75 1.75 0 000 2.75v10.5C0 14.216.784 15 1.75 15h12.5A1.75 1.75 0 0016 13.25v-8.5A1.75 1.75 0 0014.25 3h-6.5a.25.25 0 01-.2-.1l-.9-1.2C6.07 1.26 5.55 1 5 1H1.75z"/>
+          </svg>
+          Target Folder
+          <span class="tag-opt">optional</span>
+        </div>
+        <input class="inp" id="cloneDir" type="text"
+          placeholder="leave blank → auto from repo name"
+          spellcheck="false" autocomplete="off"/>
+      </div>
+
+      <!-- progress -->
+      <div class="prog-wrap" id="progWrap">
+        <div class="prog-meta">
+          <span id="progLabel">Cloning…</span>
+          <span id="progPct"></span>
+        </div>
+        <div class="prog-track"><div class="prog-fill" id="progFill"></div></div>
+      </div>
+
+      <!-- step indicators -->
+      <div class="steps-wrap" id="stepsWrap">
+        <div class="step" id="s-connect">
+          <div class="step-icon"><div class="s-wait"></div></div>
+          <span>Connecting to remote</span>
+        </div>
+        <div class="step" id="s-receive">
+          <div class="step-icon"><div class="s-wait"></div></div>
+          <span>Receiving objects</span>
+        </div>
+
+      </div>
+
+      <!-- status card -->
+      <div class="status-card" id="statusCard">
+        <svg viewBox="0 0 16 16" fill="currentColor" id="statusIco"></svg>
+        <span id="statusText"></span>
+      </div>
+
+      <!-- summary after clone -->
+      <div class="summary" id="summaryRow" style="display:none">
+        <svg viewBox="0 0 16 16" fill="currentColor">
+          <path d="M1.75 1A1.75 1.75 0 000 2.75v10.5C0 14.216.784 15 1.75 15h12.5A1.75 1.75 0 0016 13.25v-8.5A1.75 1.75 0 0014.25 3h-6.5a.25.25 0 01-.2-.1l-.9-1.2C6.07 1.26 5.55 1 5 1H1.75z"/>
+        </svg>
+        Cloned into&nbsp;<span class="sum-val" id="sumRepo">—</span>&nbsp;·&nbsp;<span class="sum-val" id="sumFiles">—</span>&nbsp;files
+      </div>
+
+      <button class="clone-btn" id="cloneBtn" onclick="doClone()">
+        <!-- clipboard/copy icon -->
+        <svg viewBox="0 0 16 16" fill="currentColor">
+          <path d="M5.75 1a.75.75 0 00-.75.75v3c0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75v-3a.75.75 0 00-.75-.75h-4.5zm.75 3V2.5h3V4h-3zm-2.874-.467a.75.75 0 00-.752-1.298A1.75 1.75 0 002 3.75v9.5c0 .966.784 1.75 1.75 1.75h8.5A1.75 1.75 0 0014 13.25v-9.5a1.75 1.75 0 00-.874-1.515.75.75 0 10-.752 1.298.25.25 0 01.126.217v9.5a.25.25 0 01-.25.25h-8.5a.25.25 0 01-.25-.25v-9.5a.25.25 0 01.126-.217z"/>
+        </svg>
+        Clone Repository
+      </button>
+    </div>
+
+    <!-- CLONED FILES -->
+    <div class="files-sec" id="filesSec">
+      <div class="sec-head">
+        <!-- file icon -->
+        <svg viewBox="0 0 16 16" fill="currentColor">
+          <path d="M2 1.75C2 .784 2.784 0 3.75 0h6.586c.464 0 .909.184 1.237.513l2.914 2.914c.329.328.513.773.513 1.237v9.586A1.75 1.75 0 0113.25 16h-9.5A1.75 1.75 0 012 14.25V1.75zm1.75-.25a.25.25 0 00-.25.25v12.5c0 .138.112.25.25.25h9.5a.25.25 0 00.25-.25V6h-2.75A1.75 1.75 0 019 4.25V1.5H3.75zm6.75.96v1.79c0 .138.112.25.25.25h1.79L10.5 2.46z"/>
+        </svg>
+        Cloned Files
+        <span class="f-count" id="fCount">0</span>
+      </div>
+      <div class="file-list" id="fileList"></div>
+    </div>
+
+  </div><!-- /scroll -->
+</div><!-- /app -->
+
+<script>
+/* ── INIT ── */
+const params = new URLSearchParams(location.search);
+const PASS   = params.get('pass') || '';
+const IP     = params.get('ip')   || 'localhost';
+
+let ws           = null;
+let cmdCtx       = null;   // current pending command
+let silentBuf    = '';     // accumulates stdout silently
+let silentErr    = '';
+
+/* ── WS ── */
+function connect(){
+  try{
+    ws = new WebSocket(`ws://${IP}:3000`);
+    ws.onopen    = () => setConn(true);
+    ws.onclose   = () => { setConn(false); setTimeout(connect, 3000); };
+    ws.onerror   = () => setConn(false);
+    ws.onmessage = e => { try{ onMsg(JSON.parse(e.data)); }catch{} };
+  }catch{ setTimeout(connect, 3000); }
+}
+
+function setConn(v){
+  document.getElementById('connDot').className   = 'conn-dot' + (v?' on':'');
+  document.getElementById('connLabel').textContent = v ? 'Live' : 'Off';
+  document.getElementById('noConn').style.display = v ? 'none' : 'flex';
+  document.getElementById('mainApp').style.visibility = v ? 'visible' : 'hidden';
+}
+
+function send(obj){
+  if(ws && ws.readyState === WebSocket.OPEN)
+    ws.send(JSON.stringify({...obj, password: PASS}));
+}
+
+/* run a command completely silently, resolve with {stdout,stderr,code} */
+const RUN_TIMEOUT_MS = 120_000; // 2 min — bump if you clone huge repos
+function run(cmd){
+  return new Promise(resolve => {
+    silentBuf = '';
+    silentErr = '';
+
+    const timer = setTimeout(() => {
+      if(cmdCtx){
+        cmdCtx = null;
+        resolve({ stdout: silentBuf, stderr: silentErr, code: -1, timedOut: true });
+      }
+    }, RUN_TIMEOUT_MS);
+
+    cmdCtx = {
+      resolve(result){
+        clearTimeout(timer);
+        resolve(result);
+      }
+    };
+    send({ type:'command', command: cmd });
+  });
+}
+
+function onMsg(msg){
+  if(msg.type === 'stdout'){ silentBuf += (msg.data || ''); onStdout(msg.data||''); }
+  if(msg.type === 'stderr'){ silentErr += (msg.data || ''); onStdout(msg.data||''); /* git sends progress to stderr */ }
+  if(msg.type === 'exit'){
+    if(cmdCtx){
+      const ctx = cmdCtx; cmdCtx = null;
+      ctx.resolve({ stdout: silentBuf, stderr: silentErr, code: msg.code||0 });
+    }
+  }
+}
+
+/* parse progress from git output (goes to stderr) */
+function onStdout(text){
+  const m = text.match(/(\d{1,3})%/);
+  if(m) setProgress(parseInt(m[1]));
+
+  // step detection
+  if(/Counting|Enumerating/i.test(text))   setStep('s-connect','active');
+  if(/Receiving objects/i.test(text)){    setStep('s-receive','active'); setStep('s-connect','done'); }
+  if(/Resolving deltas|Checking out|Updating files/i.test(text)){ setStep('s-receive','done'); }
+}
+
+/* ── STEPS ── */
+function resetSteps(){
+  ['s-connect','s-receive'].forEach(id=>{
+    const el = document.getElementById(id);
+    el.className = 'step';
+    el.querySelector('.step-icon').innerHTML = '<div class="s-wait"></div>';
+  });
+}
+function setStep(id, state){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.className = 'step ' + state;
+  const ico = el.querySelector('.step-icon');
+  if(state === 'active') ico.innerHTML = '<div class="s-spin"></div>';
+  else if(state === 'done') ico.innerHTML = '<svg class="s-check" viewBox="0 0 16 16" fill="currentColor" width="12" height="12"><path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l6.72-6.72a.75.75 0 011.06 0z"/></svg>';
+  else if(state === 'fail') ico.innerHTML = '<svg class="s-x" viewBox="0 0 16 16" fill="currentColor" width="12" height="12"><path d="M3.72 3.72a.75.75 0 011.06 0L8 6.94l3.22-3.22a.75.75 0 111.06 1.06L9.06 8l3.22 3.22a.75.75 0 11-1.06 1.06L8 9.06l-3.22 3.22a.75.75 0 01-1.06-1.06L6.94 8 3.72 4.78a.75.75 0 010-1.06z"/></svg>';
+}
+
+/* ── PROGRESS ── */
+function setProgress(pct){
+  document.getElementById('progFill').style.width = pct + '%';
+  document.getElementById('progPct').textContent  = pct + '%';
+  const lbl = document.getElementById('progLabel');
+  if(pct < 20)      lbl.textContent = 'Connecting to remote…';
+  else if(pct < 55) lbl.textContent = 'Receiving objects…';
+  else if(pct < 85) lbl.textContent = 'Resolving deltas…';
+  else              lbl.textContent = 'Checking out files…';
+}
+
+/* ── STATUS CARD ── */
+function showStatus(type, text){
+  const card = document.getElementById('statusCard');
+  const ico  = document.getElementById('statusIco');
+  card.className = 'status-card ' + type;
+  card.style.display = 'flex';
+  document.getElementById('statusText').textContent = text;
+  ico.innerHTML = type === 'ok'
+    ? '<path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l6.72-6.72a.75.75 0 011.06 0z"/>'
+    : '<path d="M3.72 3.72a.75.75 0 011.06 0L8 6.94l3.22-3.22a.75.75 0 111.06 1.06L9.06 8l3.22 3.22a.75.75 0 11-1.06 1.06L8 9.06l-3.22 3.22a.75.75 0 01-1.06-1.06L6.94 8 3.72 4.78a.75.75 0 010-1.06z"/>';
+}
+
+/* ── URL AUTOFILL ── */
+function onUrlInput(val){
+  document.getElementById('branchName').textContent = 'main';
+}
+
+/* ── FILE ICON ── */
+const EXT_COLOR = {
+  js:'c-js',mjs:'c-js',cjs:'c-js',jsx:'c-js',
+  ts:'c-ts',tsx:'c-ts',
+  py:'c-py',rb:'c-rb',go:'c-go',rs:'c-rs',
+  html:'c-html',htm:'c-html',css:'c-css',scss:'c-css',
+  md:'c-md',mdx:'c-md',
+  json:'c-json',jsonc:'c-json',
+  sh:'c-sh',bash:'c-sh',zsh:'c-sh',
+};
+function extColor(name){ return EXT_COLOR[(name.split('.').pop()||'').toLowerCase()] || 'c-def'; }
+
+/* ── CLONE ── */
+async function doClone(){
+  const url = document.getElementById('cloneUrl').value.trim();
+  const dir = document.getElementById('cloneDir').value.trim();
+  if(!url){ showStatus('err','Please enter a repository URL'); return; }
+  if(!ws || ws.readyState !== WebSocket.OPEN){ showStatus('err','Not connected to server'); return; }
+
+  // reset
+  document.getElementById('statusCard').style.display  = 'none';
+  document.getElementById('filesSec').style.display    = 'none';
+  document.getElementById('summaryRow').style.display  = 'none';
+  document.getElementById('progWrap').style.display    = 'block';
+  document.getElementById('stepsWrap').style.display   = 'flex';
+  document.getElementById('progFill').style.width      = '0%';
+  document.getElementById('progPct').textContent       = '';
+  document.getElementById('progLabel').textContent     = 'Starting…';
+  document.getElementById('fileList').innerHTML        = '';
+  resetSteps();
+
+  const btn = document.getElementById('cloneBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spin"></div> Cloning…';
+
+  setStep('s-connect','active');
+
+  // Animate steps with timers — don't rely on parsing git stderr through the proxy
+  const stepTimer1 = setTimeout(() => { setStep('s-connect','done'); setStep('s-receive','active'); }, 1800);
+
+  // Single git clone — no pre-commands, nothing before it
+  const cmd = dir
+    ? `git clone "${url}" "${dir}"`
+    : `git clone "${url}"`;
+  const result = await run(cmd);
+  const { stdout, stderr, code } = result;
+
+  clearTimeout(stepTimer1);
+
+  document.getElementById('progWrap').style.display  = 'none';
+  document.getElementById('stepsWrap').style.display = 'none';
+
+  if(result.timedOut){
+    setStep('s-connect','fail');
+    setStep('s-receive','fail');
+    showStatus('err','Clone timed out — server took too long to respond');
+  } else if(code === 0){
+    setStep('s-connect','done');
+    setStep('s-receive','done');
+
+    showStatus('ok','Repository cloned successfully');
+
+    const all = stdout + stderr;
+    const repoName = dir
+      || (all.match(/Cloning into '([^']+)'/)||[])[1]
+      || (url.split('/').pop()||'').replace(/\.git$/,'');
+
+    // try to grab branch name from git output
+    const bm = all.match(/branch '([^']+)'/) || all.match(/\* ([^\s]+)/);
+    if(bm && bm[1]) document.getElementById('branchName').textContent = bm[1];
+  } else {
+    setStep('s-connect','fail');
+    setStep('s-receive','fail');
+    showStatus('err','Clone failed — check the URL or credentials');
+  }
+
+
+  btn.disabled = false;
+  btn.innerHTML = `<svg viewBox="0 0 16 16" fill="currentColor">
+    <path d="M5.75 1a.75.75 0 00-.75.75v3c0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75v-3a.75.75 0 00-.75-.75h-4.5zm.75 3V2.5h3V4h-3zm-2.874-.467a.75.75 0 00-.752-1.298A1.75 1.75 0 002 3.75v9.5c0 .966.784 1.75 1.75 1.75h8.5A1.75 1.75 0 0014 13.25v-9.5a1.75 1.75 0 00-.874-1.515.75.75 0 10-.752 1.298.25.25 0 01.126.217v9.5a.25.25 0 01-.25.25h-8.5a.25.25 0 01-.25-.25v-9.5a.25.25 0 01.126-.217z"/>
+  </svg>Clone Repository`;
+}
+
+function esc(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+
+connect();
+</script>
+</body>
+</html>
