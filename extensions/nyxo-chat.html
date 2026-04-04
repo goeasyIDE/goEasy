@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Nyxo Code</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark-dimmed.min.css"/>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:       #0c0d11;
+  --surface:  #111318;
+  --surface2: #161820;
+  --border:   #1e2130;
+  --border2:  #252840;
+  --text:     #e2e4f0;
+  --muted:    #545878;
+  --muted2:   #3a3d54;
+  --accent:   #7c6af7;
+  --accent2:  #a78bfa;
+  --accentdim:#7c6af714;
+  --accentbdr:#7c6af730;
+  --green:    #34d399;
+  --red:      #f87171;
+  --yellow:   #fbbf24;
+  --blue:     #60a5fa;
+  --mono:     'JetBrains Mono', monospace;
+  --sans:     'Geist', sans-serif;
+  --r:        10px;
+  --r-sm:     6px;
+}
+
+html, body {
+  width: 100%; height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.6;
+  overflow: hidden;
+}
+
+/* ── SETUP SCREEN ─────────────────────────────────────── */
+#setup {
+  position: fixed; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg);
+  z-index: 100;
+}
+#setup.gone { display: none; }
+
+.setup-card {
+  width: 380px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 36px;
+  box-shadow: 0 0 80px rgba(124,106,247,.12), 0 40px 80px rgba(0,0,0,.6);
+  animation: slideUp .3s cubic-bezier(.22,.68,0,1.2);
+}
+@keyframes slideUp {
+  from { transform: translateY(18px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.setup-logo {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 24px;
+}
+.logo-mark {
+  width: 38px; height: 38px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 16px; font-weight: 600; color: #fff;
+  box-shadow: 0 4px 20px rgba(124,106,247,.35);
+  flex-shrink: 0;
+}
+.setup-title { font-size: 20px; font-weight: 600; letter-spacing: -.4px; }
+.setup-title span { color: var(--accent2); }
+
+.setup-sub {
+  font-size: 12.5px; color: var(--muted);
+  line-height: 1.7; margin-bottom: 22px;
+}
+
+.field { margin-bottom: 14px; }
+.field label {
+  display: block; font-size: 10.5px; font-weight: 600;
+  color: var(--muted); text-transform: uppercase; letter-spacing: .8px;
+  margin-bottom: 7px;
+}
+.field input {
+  width: 100%; padding: 10px 13px;
+  background: var(--bg); border: 1px solid var(--border2);
+  border-radius: var(--r-sm); color: var(--text);
+  font-family: var(--mono); font-size: 13px; outline: none;
+  transition: border-color .18s, box-shadow .18s;
+}
+.field input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(124,106,247,.15);
+}
+.field input::placeholder { color: var(--muted2); }
+
+.setup-hint { font-size: 11px; color: var(--muted); margin-top: 4px; opacity: .75; }
+.setup-err {
+  font-size: 12px; color: var(--red); background: rgba(248,113,113,.08);
+  border: 1px solid rgba(248,113,113,.2); border-radius: var(--r-sm);
+  padding: 8px 12px; margin-bottom: 12px; display: none;
+}
+.setup-err.show { display: block; }
+
+.btn-connect {
+  width: 100%; padding: 12px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border: none; border-radius: var(--r-sm);
+  color: #fff; font-family: var(--sans); font-size: 14px; font-weight: 600;
+  cursor: pointer; letter-spacing: -.1px;
+  box-shadow: 0 4px 20px rgba(124,106,247,.3);
+  transition: opacity .18s, transform .1s;
+}
+.btn-connect:hover { opacity: .9; }
+.btn-connect:active { transform: scale(.98); }
+
+/* ── MAIN APP ─────────────────────────────────────────── */
+#app { width: 100%; height: 100%; display: flex; flex-direction: column; }
+#app.hidden { display: none; }
+
+/* Header */
+#header {
+  height: 48px; flex-shrink: 0;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 16px; gap: 10px;
+  user-select: none;
+}
+.hdr-logo {
+  display: flex; align-items: center; gap: 9px;
+}
+.hdr-mark {
+  width: 26px; height: 26px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 11px; font-weight: 600; color: #fff;
+  box-shadow: 0 2px 10px rgba(124,106,247,.3);
+  flex-shrink: 0;
+}
+.hdr-name {
+  font-size: 14px; font-weight: 600;
+  letter-spacing: -.3px;
+}
+.hdr-name span { color: var(--accent2); }
+
+.hdr-sep { width: 1px; height: 18px; background: var(--border); margin: 0 6px; }
+
+.ws-pill {
+  display: flex; align-items: center; gap: 6px;
+  padding: 3px 10px;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 20px; font-size: 11.5px; color: var(--muted);
+  font-family: var(--mono);
+}
+.ws-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--muted2);
+  transition: background .4s, box-shadow .4s;
+  flex-shrink: 0;
+}
+.ws-dot.on  { background: var(--green); box-shadow: 0 0 6px rgba(52,211,153,.5); }
+.ws-dot.err { background: var(--red); }
+
+.hdr-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+
+#model-badge {
+  font-size: 11px; color: var(--accent2);
+  background: var(--accentdim); border: 1px solid var(--accentbdr);
+  border-radius: 20px; padding: 2px 9px;
+  font-family: var(--mono); display: none;
+}
+#model-badge.show { display: block; }
+
+.hdr-btn {
+  height: 28px; padding: 0 10px;
+  background: none; border: 1px solid var(--border);
+  border-radius: var(--r-sm); color: var(--muted);
+  font-size: 11.5px; font-family: var(--sans); cursor: pointer;
+  display: flex; align-items: center; gap: 5px;
+  transition: all .15s;
+}
+.hdr-btn:hover { color: var(--text); background: var(--surface2); border-color: var(--border2); }
+.hdr-btn.danger:hover { color: var(--red); border-color: rgba(248,113,113,.3); background: rgba(248,113,113,.06); }
+.hdr-btn svg { width: 12px; height: 12px; }
+
+/* ── CHAT AREA ────────────────────────────────────────── */
+#chat {
+  flex: 1; overflow-y: auto; padding: 28px 0;
+  display: flex; flex-direction: column; gap: 0;
+  scroll-behavior: smooth;
+}
+#chat::-webkit-scrollbar { width: 4px; }
+#chat::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+/* Welcome */
+#welcome {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; flex: 1; padding: 40px 24px;
+  text-align: center; gap: 16px; animation: fadeIn .4s ease;
+}
+#welcome.gone { display: none; }
+.welcome-glyph {
+  width: 56px; height: 56px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border-radius: 16px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 22px; font-weight: 600; color: #fff;
+  box-shadow: 0 8px 32px rgba(124,106,247,.35);
+  margin-bottom: 4px;
+}
+.welcome-title { font-size: 22px; font-weight: 600; letter-spacing: -.4px; }
+.welcome-sub { font-size: 13.5px; color: var(--muted); max-width: 360px; line-height: 1.7; }
+.welcome-chips {
+  display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;
+  margin-top: 6px;
+}
+.chip {
+  padding: 7px 14px; background: var(--surface);
+  border: 1px solid var(--border2); border-radius: 20px;
+  font-size: 12.5px; color: var(--muted); cursor: pointer;
+  transition: all .18s;
+}
+.chip:hover { border-color: var(--accentbdr); color: var(--accent2); background: var(--accentdim); }
+
+/* Message rows */
+.msg-row {
+  padding: 6px 20px;
+  display: flex; gap: 12px; align-items: flex-start;
+  animation: msgIn .22s ease;
+  max-width: 100%;
+}
+@keyframes msgIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.msg-row.user { flex-direction: row-reverse; }
+
+/* Avatars */
+.avatar {
+  width: 30px; height: 30px; border-radius: 8px;
+  flex-shrink: 0; display: flex; align-items: center;
+  justify-content: center; margin-top: 2px;
+  font-family: var(--mono); font-size: 11px; font-weight: 600;
+}
+.avatar.ai {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #fff;
+  box-shadow: 0 2px 10px rgba(124,106,247,.3);
+}
+.avatar.user {
+  background: var(--surface2); border: 1px solid var(--border2);
+  color: var(--muted);
+}
+
+/* Bubbles */
+.bubble {
+  max-width: min(680px, calc(100% - 60px));
+  position: relative;
+}
+
+.bubble.ai {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px 14px 14px 14px;
+  padding: 14px 18px;
+  border-left: 2px solid var(--accentbdr);
+}
+
+.bubble.user {
+  background: rgba(124,106,247,.1);
+  border: 1px solid var(--accentbdr);
+  border-radius: 14px 4px 14px 14px;
+  padding: 12px 16px;
+  color: var(--text);
+}
+
+/* Timestamp */
+.msg-time {
+  font-size: 10px; color: var(--muted);
+  font-family: var(--mono);
+  margin-bottom: 5px;
+  display: block;
+}
+.msg-row.user .msg-time { text-align: right; }
+
+/* Tool indicator */
+.tool-chips {
+  display: flex; flex-wrap: wrap; gap: 5px;
+  margin-bottom: 10px;
+}
+.tool-chip {
+  display: flex; align-items: center; gap: 5px;
+  padding: 3px 9px;
+  background: rgba(96,165,250,.08); border: 1px solid rgba(96,165,250,.2);
+  border-radius: 20px; font-size: 11px; color: var(--blue);
+  font-family: var(--mono);
+}
+.tool-chip svg { width: 10px; height: 10px; flex-shrink: 0; }
+
+/* MD content */
+.md-content { color: var(--text); }
+.md-content p { margin-bottom: 10px; }
+.md-content p:last-child { margin-bottom: 0; }
+.md-content h1, .md-content h2, .md-content h3 {
+  font-weight: 600; margin: 16px 0 8px; line-height: 1.3;
+  letter-spacing: -.3px;
+}
+.md-content h1 { font-size: 18px; }
+.md-content h2 { font-size: 16px; }
+.md-content h3 { font-size: 14.5px; }
+.md-content ul, .md-content ol { padding-left: 20px; margin-bottom: 10px; }
+.md-content li { margin-bottom: 4px; }
+.md-content a { color: var(--accent2); text-decoration: none; }
+.md-content a:hover { text-decoration: underline; }
+.md-content blockquote {
+  border-left: 3px solid var(--accentbdr); padding-left: 14px;
+  margin: 12px 0; color: var(--muted);
+}
+.md-content hr { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
+.md-content table {
+  width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px;
+}
+.md-content th, .md-content td {
+  padding: 7px 12px; border: 1px solid var(--border);
+  text-align: left;
+}
+.md-content th { background: var(--surface2); font-weight: 600; font-size: 12px; }
+
+/* Inline code */
+.md-content :not(pre) > code {
+  font-family: var(--mono); font-size: 12.5px;
+  background: var(--surface2); border: 1px solid var(--border2);
+  padding: 1px 6px; border-radius: 4px;
+  color: var(--accent2);
+}
+
+/* Code blocks */
+.md-content pre {
+  background: #0d0e13 !important;
+  border: 1px solid var(--border);
+  border-radius: var(--r); margin: 12px 0;
+  overflow: hidden;
+}
+.code-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 14px;
+  background: rgba(255,255,255,.02);
+  border-bottom: 1px solid var(--border);
+}
+.code-lang {
+  font-family: var(--mono); font-size: 10.5px;
+  color: var(--muted); text-transform: uppercase; letter-spacing: .6px;
+}
+.code-copy {
+  background: none; border: 1px solid var(--border2);
+  border-radius: 4px; color: var(--muted); font-size: 10.5px;
+  padding: 2px 8px; cursor: pointer; font-family: var(--sans);
+  transition: all .15s; display: flex; align-items: center; gap: 4px;
+}
+.code-copy:hover { color: var(--text); border-color: var(--muted); }
+.code-copy svg { width: 10px; height: 10px; }
+.md-content pre code {
+  display: block; padding: 14px !important;
+  font-family: var(--mono) !important; font-size: 12.5px;
+  line-height: 1.65; background: none !important;
+  color: #c9d1d9;
+  overflow-x: auto;
+}
+
+/* Typing cursor */
+.cursor {
+  display: inline-block; width: 2px; height: 1em;
+  background: var(--accent2); border-radius: 1px;
+  vertical-align: text-bottom; margin-left: 1px;
+  animation: blink .7s infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+/* Thinking indicator */
+.thinking {
+  display: flex; align-items: center; gap: 8px;
+  padding: 12px 18px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-left: 2px solid var(--accentbdr);
+  border-radius: 4px 14px 14px 14px;
+  width: fit-content;
+}
+.thinking-dots { display: flex; gap: 4px; }
+.thinking-dots span {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--accent);
+  animation: pulse 1.2s infinite;
+}
+.thinking-dots span:nth-child(2) { animation-delay: .2s; }
+.thinking-dots span:nth-child(3) { animation-delay: .4s; }
+@keyframes pulse { 0%,80%,100%{opacity:.2;transform:scale(.8)} 40%{opacity:1;transform:scale(1)} }
+.thinking-text { font-size: 12.5px; color: var(--muted); font-family: var(--mono); }
+
+/* Error bubble */
+.bubble.error {
+  background: rgba(248,113,113,.06);
+  border: 1px solid rgba(248,113,113,.2);
+  border-left: 2px solid var(--red);
+  border-radius: 4px 14px 14px 14px;
+  padding: 12px 16px;
+  color: var(--red); font-size: 13px;
+  font-family: var(--mono);
+}
+
+/* System / date dividers */
+.date-divider {
+  display: flex; align-items: center; gap: 12px;
+  padding: 8px 20px; margin: 6px 0;
+}
+.date-divider::before, .date-divider::after {
+  content: ''; flex: 1; height: 1px; background: var(--border);
+}
+.date-divider span {
+  font-size: 10.5px; color: var(--muted); white-space: nowrap;
+  font-family: var(--mono);
+}
+
+/* ── INPUT AREA ───────────────────────────────────────── */
+#input-wrap {
+  flex-shrink: 0;
+  padding: 0 20px 20px;
+  position: relative;
+}
+
+.input-box {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 14px;
+  overflow: hidden;
+  transition: border-color .18s, box-shadow .18s;
+}
+.input-box:focus-within {
+  border-color: var(--accentbdr);
+  box-shadow: 0 0 0 3px rgba(124,106,247,.08);
+}
+
+#msg-input {
+  width: 100%; padding: 14px 16px 8px;
+  background: transparent; border: none; outline: none;
+  color: var(--text); font-family: var(--sans); font-size: 14px;
+  line-height: 1.55; resize: none; min-height: 52px; max-height: 200px;
+  caret-color: var(--accent);
+}
+#msg-input::placeholder { color: var(--muted); }
+
+.input-footer {
+  display: flex; align-items: center; padding: 6px 10px 8px;
+  gap: 6px;
+}
+.input-hint {
+  font-size: 11px; color: var(--muted);
+  display: flex; align-items: center; gap: 5px;
+}
+.kbd {
+  padding: 1px 5px; background: var(--bg);
+  border: 1px solid var(--border2);
+  border-radius: 3px; font-family: var(--mono);
+  font-size: 10px; color: var(--muted);
+}
+.input-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+#char-count { font-size: 11px; color: var(--muted2); font-family: var(--mono); display: none; }
+#char-count.show { display: block; }
+
+#send-btn {
+  width: 32px; height: 32px;
+  background: var(--accent); border: none; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; flex-shrink: 0;
+  box-shadow: 0 2px 10px rgba(124,106,247,.35);
+  transition: all .15s;
+}
+#send-btn:hover { background: var(--accent2); transform: scale(1.04); }
+#send-btn:active { transform: scale(.96); }
+#send-btn:disabled { background: var(--muted2); cursor: default; transform: none; box-shadow: none; }
+#send-btn svg { width: 14px; height: 14px; color: #fff; }
+
+#stop-btn {
+  display: none;
+  width: 32px; height: 32px;
+  background: rgba(248,113,113,.15); border: 1px solid rgba(248,113,113,.3);
+  border-radius: 8px;
+  align-items: center; justify-content: center;
+  cursor: pointer; flex-shrink: 0;
+  transition: all .15s;
+}
+#stop-btn.show { display: flex; }
+#stop-btn:hover { background: rgba(248,113,113,.25); }
+#stop-btn svg { width: 12px; height: 12px; color: var(--red); }
+
+/* Status bar */
+#statusbar {
+  display: flex; align-items: center; gap: 6px;
+  padding: 0 20px 6px;
+  font-size: 11px; color: var(--muted); font-family: var(--mono);
+}
+#status-text { flex: 1; }
+.status-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--muted2); }
+.status-dot.on { background: var(--green); }
+.status-dot.typing { background: var(--accent); animation: pulse 1s infinite; }
+
+@keyframes fadeIn { from{opacity:0}to{opacity:1} }
+</style>
+</head>
+<body>
+
+<!-- Setup screen (shown when no query params) -->
+<div id="setup">
+  <div class="setup-card">
+    <div class="setup-logo">
+      <div class="logo-mark">◉</div>
+      <div class="setup-title">Nyxo <span>Code</span></div>
+    </div>
+    <p class="setup-sub">Connect to your server to start chatting with Nyxo Code agent.</p>
+    <div class="field">
+      <label>Host / IP</label>
+      <input id="s-ip" type="text" placeholder="192.168.1.100" autocomplete="off" spellcheck="false"/>
+      <div class="setup-hint">Connects to ws://host:3000</div>
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input id="s-pass" type="password" placeholder="Server password" autocomplete="off"/>
+    </div>
+    <div id="setup-err" class="setup-err"></div>
+    <button class="btn-connect" id="s-connect">Connect →</button>
+  </div>
+</div>
+
+<!-- Main app -->
+<div id="app" class="hidden">
+  <!-- Header -->
+  <div id="header">
+    <div class="hdr-logo">
+      <div class="hdr-mark">◉</div>
+      <div class="hdr-name">Nyxo <span>Code</span></div>
+    </div>
+    <div class="hdr-sep"></div>
+    <div class="ws-pill">
+      <div class="ws-dot" id="ws-dot"></div>
+      <span id="ws-label">Connecting…</span>
+    </div>
+    <div id="model-badge">nyxo-agent</div>
+    <div class="hdr-right">
+      <button class="hdr-btn" id="btn-clear" title="Clear chat">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+        Clear
+      </button>
+      <button class="hdr-btn danger" id="btn-disconnect" title="Disconnect">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Disconnect
+      </button>
+    </div>
+  </div>
+
+  <!-- Chat -->
+  <div id="chat">
+    <div id="welcome">
+      <div class="welcome-glyph">◉</div>
+      <div class="welcome-title">Nyxo Code</div>
+      <div class="welcome-sub">Your AI coding agent. Ask me to read files, write code, run commands, debug errors, or explain anything.</div>
+      <div class="welcome-chips">
+        <div class="chip" data-msg="List the files in the current directory">📁 List files</div>
+        <div class="chip" data-msg="What node packages are installed?">📦 Check packages</div>
+        <div class="chip" data-msg="Show me the package.json file">📄 Read package.json</div>
+        <div class="chip" data-msg="What are you capable of?">✨ What can you do?</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status bar -->
+  <div id="statusbar">
+    <div class="status-dot" id="s-dot"></div>
+    <span id="status-text">Ready</span>
+  </div>
+
+  <!-- Input -->
+  <div id="input-wrap">
+    <div class="input-box">
+      <textarea id="msg-input" placeholder="Message Nyxo…" rows="1"></textarea>
+      <div class="input-footer">
+        <span class="input-hint">
+          <kbd class="kbd">Enter</kbd> send
+          &nbsp;·&nbsp;
+          <kbd class="kbd">Shift+Enter</kbd> new line
+        </span>
+        <div class="input-right">
+          <span id="char-count"></span>
+          <button id="stop-btn" title="Stop">
+            <svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+          </button>
+          <button id="send-btn" title="Send (Enter)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Params & State ──────────────────────────────────────────
+const params = new URLSearchParams(location.search);
+let IP   = params.get('ip')   || '';
+let PASS = params.get('pass') || '';
+
+let ws           = null;
+let wsReady      = false;
+let receiving    = false;
+let buffer       = '';
+let thinkingEl   = null;
+let aborted      = false;
+let reconnectTimer = null;
+
+// ── Marked config ───────────────────────────────────────────
+marked.setOptions({
+  gfm: true, breaks: true,
+  highlight(code, lang) {
+    if (lang && hljs.getLanguage(lang)) {
+      try { return hljs.highlight(code, {language: lang}).value; } catch {}
+    }
+    return hljs.highlightAuto(code).value;
+  }
+});
+
+// Override renderer to add copy buttons + language labels
+const renderer = new marked.Renderer();
+renderer.code = function(code, lang) {
+  const safeCode = typeof code === 'string' ? code : '';
+  const displayLang = lang || 'text';
+  let highlighted;
+  if (lang && hljs.getLanguage(lang)) {
+    try { highlighted = hljs.highlight(safeCode, {language: lang}).value; }
+    catch { highlighted = escHtml(safeCode); }
+  } else {
+    highlighted = hljs.highlightAuto(safeCode).value;
+  }
+  return `<pre><div class="code-header"><span class="code-lang">${escHtml(displayLang)}</span><button class="code-copy" onclick="copyCode(this)" data-code="${escAttr(safeCode)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Copy</button></div><code class="hljs">${highlighted}</code></pre>`;
+};
+marked.setOptions({ renderer });
+
+// ── Helpers ─────────────────────────────────────────────────
+function escHtml(s)  { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escAttr(s)  { return String(s).replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function esc(s)      { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+function now()       { return new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}); }
+
+function copyCode(btn) {
+  const code = btn.dataset.code;
+  navigator.clipboard.writeText(code).then(() => {
+    btn.textContent = 'Copied!';
+    setTimeout(() => { btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Copy'; }, 1600);
+  });
+}
+
+// ── ANSI + Nyxo output parser ───────────────────────────────
+function parseNyxoOutput(raw) {
+  // 1. Handle carriage-return overwrites (spinner clears lines with \r)
+  const lines = raw.split('\n').map(line => {
+    const parts = line.split('\r');
+    return parts[parts.length - 1]; // keep only what's after the last \r
+  });
+
+  // 2. Strip all ANSI escape sequences
+  const stripAnsi = s =>
+    s.replace(/\x1b\[[0-9;?]*[a-zA-Z]/g, '')
+     .replace(/\x1b[()][AB012]/g, '')
+     .replace(/\x1b[=>]/g, '')
+     .replace(/\x1b./g, '');
+
+  const plain = lines.map(stripAnsi);
+
+  // 3. Detect tool calls
+  const tools = [];
+  const toolRe = /⚡\s*Tool:\s*(\w+)/;
+  for (const line of plain) {
+    const m = line.match(toolRe);
+    if (m) tools.push(m[1]);
+  }
+
+  // 4. Detect errors
+  let errorMsg = null;
+  for (const line of plain) {
+    const t = line.trim();
+    if (t.startsWith('✗') || t.startsWith('Error:')) {
+      errorMsg = t.replace(/^✗\s*/, '').replace(/^Error:\s*/, '').trim();
+    }
+  }
+
+  // 5. Extract the AI response from within the ┌─ Nyxo … └─ box
+  //    Content lines start with │ (after stripping ANSI)
+  let inNyxoBox  = false;
+  let inUserBox  = false;
+  const content  = [];
+
+  for (const line of plain) {
+    const t = line.trim();
+
+    if (t.includes('┌─ Nyxo') || t.includes('┌─ nyxo') || t.match(/^┌.*Nyxo/i)) {
+      inNyxoBox = true; inUserBox = false; continue;
+    }
+    if (t.includes('┌─ You') || t.match(/^┌.*You/i)) {
+      inUserBox = true; inNyxoBox = false; continue;
+    }
+    // Block end
+    if (t.startsWith('└') && (inNyxoBox || inUserBox)) {
+      if (inNyxoBox) inNyxoBox = false;
+      inUserBox = false; continue;
+    }
+
+    if (inUserBox) continue; // skip user echo
+
+    if (inNyxoBox) {
+      // Strip the │ prefix
+      if (t.startsWith('│')) {
+        const stripped = line.replace(/^[│\s]/, '').replace(/^│\s?/, '');
+        content.push(stripped);
+      } else if (t === '') {
+        content.push('');
+      }
+    }
+  }
+
+  let text = content.join('\n').trim();
+
+  // 6. Fallback: if no box found, try to find any meaningful text after the spinner
+  if (!text && !errorMsg) {
+    const meaningful = plain.filter(line => {
+      const t = line.trim();
+      if (!t) return false;
+      if (/^[✔✖⢀⡀⠄⠂⠁⠈⠐⠠⣀⢋⠠◉]/.test(t)) return false;
+      if (t.startsWith('⚡') || t.startsWith('└─') || t.startsWith('┌') || t.startsWith('│')) return false;
+      if (/^(Session:|Model:|CWD:|Type your)/.test(t)) return false;
+      if (/^[─━═┼┤├]+$/.test(t)) return false;
+      return true;
+    });
+    text = meaningful.join('\n').trim();
+  }
+
+  return { text, tools, errorMsg };
+}
+
+// ── WS Connection ───────────────────────────────────────────
+function connectWS() {
+  if (reconnectTimer) clearTimeout(reconnectTimer);
+  try {
+    ws = new WebSocket(`ws://${IP}:3000`);
+  } catch (e) {
+    setWsState('err', 'Invalid address');
+    return;
+  }
+
+  ws.onopen = () => {
+    wsReady = true;
+    setWsState('on', IP);
+    document.getElementById('model-badge').classList.add('show');
+  };
+
+  ws.onclose = () => {
+    wsReady = false;
+    setWsState('off', 'Disconnected — retrying…');
+    document.getElementById('model-badge').classList.remove('show');
+    // If mid-response, show error
+    if (receiving) finishReceiving(null, 'Connection lost during response');
+    reconnectTimer = setTimeout(connectWS, 3000);
+  };
+
+  ws.onerror = () => setWsState('err', 'Connection error');
+
+  ws.onmessage = e => {
+    try { handleWS(JSON.parse(e.data)); }
+    catch {}
+  };
+}
+
+function handleWS(msg) {
+  switch (msg.type) {
+    case 'stdout':
+      if (receiving) buffer += (msg.data || '');
+      break;
+
+    case 'stderr':
+      if (receiving) buffer += (msg.data || '');
+      break;
+
+    case 'exit':
+      if (receiving) finishReceiving(buffer);
+      break;
+
+    // openIDE protocol also sends these for its own features — ignore
+    case 'files-list':
+    case 'file-content':
+    case 'extension-loaded':
+    case 'process-list':
+      break;
+  }
+}
+
+function wsSend(obj) {
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ ...obj, password: PASS }));
+    return true;
+  }
+  return false;
+}
+
+function setWsState(state, label) {
+  const dot  = document.getElementById('ws-dot');
+  const lbl  = document.getElementById('ws-label');
+  const sdot = document.getElementById('s-dot');
+  const stxt = document.getElementById('status-text');
+  dot.className  = 'ws-dot' + (state === 'on' ? ' on' : state === 'err' ? ' err' : '');
+  lbl.textContent = label;
+  sdot.className  = 'status-dot' + (state === 'on' ? ' on' : '');
+  if (state === 'on') stxt.textContent = 'Connected · ' + label;
+  else stxt.textContent = label;
+}
+
+// ── Send message ────────────────────────────────────────────
+function sendMessage() {
+  const input = document.getElementById('msg-input');
+  const text  = input.value.trim();
+  if (!text || receiving) return;
+
+  if (!wsReady) {
+    showSystemMsg('Not connected — please wait…', 'warn');
+    return;
+  }
+
+  // Hide welcome
+  document.getElementById('welcome').classList.add('gone');
+
+  // User bubble
+  addUserBubble(text);
+  input.value = '';
+  autoResize(input);
+
+  // Send command: escape for shell single-quoting
+  const shellMsg = text.replace(/\\/g, '\\\\').replace(/'/g, "'\\''");
+  const ok = wsSend({ type: 'command', command: `nyxo run '${shellMsg}'` });
+
+  if (!ok) {
+    addErrorBubble('Not connected to server.');
+    return;
+  }
+
+  // Start receiving
+  buffer   = '';
+  aborted  = false;
+  receiving = true;
+  thinkingEl = addThinkingIndicator();
+  setSending(true);
+  setStatus('typing', 'Nyxo is thinking…');
+}
+
+function setSending(on) {
+  const btn  = document.getElementById('send-btn');
+  const stop = document.getElementById('stop-btn');
+  const inp  = document.getElementById('msg-input');
+  btn.disabled = on;
+  stop.classList.toggle('show', on);
+  inp.disabled = on;
+}
+
+function setStatus(type, text) {
+  const dot = document.getElementById('s-dot');
+  const txt = document.getElementById('status-text');
+  dot.className = 'status-dot' + (type === 'on' ? ' on' : type === 'typing' ? ' typing' : '');
+  txt.textContent = text;
+}
+
+function finishReceiving(rawBuffer, overrideError) {
+  receiving = false;
+  setSending(false);
+
+  if (thinkingEl) { thinkingEl.remove(); thinkingEl = null; }
+
+  if (aborted) {
+    setStatus('on', 'Stopped');
+    return;
+  }
+
+  if (overrideError) {
+    addErrorBubble(overrideError);
+    setStatus('on', 'Ready');
+    return;
+  }
+
+  const { text, tools, errorMsg } = parseNyxoOutput(rawBuffer || '');
+
+  if (errorMsg) {
+    addErrorBubble('API Error: ' + errorMsg);
+  } else if (text) {
+    addAiBubble(text, tools);
+  } else {
+    addErrorBubble('No response received. Is Nyxo Code installed and configured?');
+  }
+
+  setStatus('on', 'Ready');
+}
+
+// ── Stop ────────────────────────────────────────────────────
+document.getElementById('stop-btn').addEventListener('click', () => {
+  if (!receiving) return;
+  aborted = true;
+  wsSend({ type: 'command', command: '\x03' }); // send Ctrl+C
+  receiving = false;
+  if (thinkingEl) { thinkingEl.remove(); thinkingEl = null; }
+  setSending(false);
+  setStatus('on', 'Stopped');
+});
+
+// ── Chat DOM builders ───────────────────────────────────────
+function scrollToBottom(smooth = true) {
+  const c = document.getElementById('chat');
+  c.scrollTo({ top: c.scrollHeight, behavior: smooth ? 'smooth' : 'instant' });
+}
+
+function addUserBubble(text) {
+  const chat = document.getElementById('chat');
+  const row  = document.createElement('div');
+  row.className = 'msg-row user';
+  row.innerHTML = `
+    <div>
+      <span class="msg-time">${now()}</span>
+      <div class="bubble user">${esc(text)}</div>
+    </div>
+    <div class="avatar user">you</div>
+  `;
+  chat.appendChild(row);
+  scrollToBottom();
+}
+
+function addThinkingIndicator() {
+  const chat = document.getElementById('chat');
+  const row  = document.createElement('div');
+  row.className = 'msg-row';
+  row.innerHTML = `
+    <div class="avatar ai">◉</div>
+    <div class="thinking">
+      <div class="thinking-dots"><span></span><span></span><span></span></div>
+      <span class="thinking-text">thinking…</span>
+    </div>
+  `;
+  chat.appendChild(row);
+  scrollToBottom();
+  return row;
+}
+
+function addAiBubble(markdown, tools) {
+  const chat = document.getElementById('chat');
+  const row  = document.createElement('div');
+  row.className = 'msg-row';
+
+  // Tool chips
+  const toolHtml = tools && tools.length
+    ? `<div class="tool-chips">${tools.map(t =>
+        `<span class="tool-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>${escHtml(t)}</span>`
+      ).join('')}</div>`
+    : '';
+
+  const rendered = marked.parse(markdown);
+
+  row.innerHTML = `
+    <div class="avatar ai">◉</div>
+    <div>
+      <span class="msg-time">${now()}</span>
+      <div class="bubble ai">
+        ${toolHtml}
+        <div class="md-content">${rendered}</div>
+      </div>
+    </div>
+  `;
+
+  chat.appendChild(row);
+  scrollToBottom();
+
+  // Typewriter reveal on the md-content text nodes
+  const contentEl = row.querySelector('.md-content');
+  typewriterReveal(contentEl, () => scrollToBottom());
+}
+
+function addErrorBubble(msg) {
+  const chat = document.getElementById('chat');
+  const row  = document.createElement('div');
+  row.className = 'msg-row';
+  row.innerHTML = `
+    <div class="avatar ai">◉</div>
+    <div>
+      <span class="msg-time">${now()}</span>
+      <div class="bubble error">⚠ ${esc(msg)}</div>
+    </div>
+  `;
+  chat.appendChild(row);
+  scrollToBottom();
+}
+
+function showSystemMsg(text, type) {
+  const chat = document.getElementById('chat');
+  const div  = document.createElement('div');
+  div.className = 'date-divider';
+  div.innerHTML = `<span style="color:${type==='warn'?'var(--yellow)':'var(--muted)'}">${esc(text)}</span>`;
+  chat.appendChild(div);
+  scrollToBottom();
+}
+
+// ── Typewriter animation ────────────────────────────────────
+function typewriterReveal(el, onDone) {
+  // Gather all text nodes, skipping code blocks (reveal instantly)
+  const nodes = [];
+  const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, {
+    acceptNode(node) {
+      // Skip text inside <code> or <pre> — reveal instantly
+      let p = node.parentElement;
+      while (p && p !== el) {
+        if (p.tagName === 'CODE' || p.tagName === 'PRE') return NodeFilter.FILTER_REJECT;
+        p = p.parentElement;
+      }
+      return node.textContent.trim() ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+    }
+  });
+
+  let node;
+  while ((node = walker.nextNode())) nodes.push(node);
+
+  if (!nodes.length) { onDone?.(); return; }
+
+  // Store original content, clear all
+  const originals = nodes.map(n => n.textContent);
+  nodes.forEach(n => n.textContent = '');
+
+  // Add blinking cursor after last node
+  const lastNode = nodes[nodes.length - 1];
+  const cursor   = document.createElement('span');
+  cursor.className = 'cursor';
+  lastNode.parentElement?.appendChild(cursor);
+
+  let nIdx = 0, cIdx = 0;
+  const SPEED = 4; // chars per animation frame — tune for feel
+
+  function tick() {
+    if (nIdx >= nodes.length) {
+      cursor.remove();
+      onDone?.();
+      return;
+    }
+
+    for (let i = 0; i < SPEED; i++) {
+      const text = originals[nIdx];
+      if (cIdx < text.length) {
+        nodes[nIdx].textContent += text[cIdx++];
+      } else {
+        nIdx++;
+        cIdx = 0;
+        if (nIdx >= nodes.length) {
+          cursor.remove();
+          onDone?.();
+          return;
+        }
+      }
+    }
+
+    requestAnimationFrame(tick);
+  }
+
+  requestAnimationFrame(tick);
+}
+
+// ── Input auto-resize ───────────────────────────────────────
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 200) + 'px';
+}
+
+const msgInput = document.getElementById('msg-input');
+const charCount = document.getElementById('char-count');
+
+msgInput.addEventListener('input', () => {
+  autoResize(msgInput);
+  const len = msgInput.value.length;
+  if (len > 80) {
+    charCount.textContent = len;
+    charCount.classList.add('show');
+  } else {
+    charCount.classList.remove('show');
+  }
+});
+
+msgInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+});
+
+document.getElementById('send-btn').addEventListener('click', sendMessage);
+
+// ── Chip quick-sends ────────────────────────────────────────
+document.querySelectorAll('.chip[data-msg]').forEach(chip => {
+  chip.addEventListener('click', () => {
+    if (receiving) return;
+    msgInput.value = chip.dataset.msg;
+    autoResize(msgInput);
+    sendMessage();
+  });
+});
+
+// ── Header buttons ──────────────────────────────────────────
+document.getElementById('btn-clear').addEventListener('click', () => {
+  const chat = document.getElementById('chat');
+  // Remove all message rows and dividers, keep welcome
+  chat.querySelectorAll('.msg-row, .date-divider').forEach(el => el.remove());
+  document.getElementById('welcome').classList.remove('gone');
+});
+
+document.getElementById('btn-disconnect').addEventListener('click', () => {
+  if (ws) ws.close();
+  // Go back to setup
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('setup').classList.remove('gone');
+  IP = ''; PASS = '';
+  // Update URL
+  history.replaceState({}, '', location.pathname);
+});
+
+// ── Setup form ──────────────────────────────────────────────
+function showSetupErr(msg) {
+  const el = document.getElementById('setup-err');
+  el.textContent = msg;
+  el.classList.add('show');
+}
+
+function doSetupConnect() {
+  const ip   = document.getElementById('s-ip').value.trim();
+  const pass = document.getElementById('s-pass').value.trim();
+  if (!ip)   { showSetupErr('Enter your server IP or hostname.'); return; }
+  if (!pass) { showSetupErr('Enter your server password.'); return; }
+  IP   = ip;
+  PASS = pass;
+  // Update URL so params are set
+  const url = new URL(location);
+  url.searchParams.set('ip', ip);
+  url.searchParams.set('pass', pass);
+  history.replaceState({}, '', url);
+  launchApp();
+}
+
+document.getElementById('s-connect').addEventListener('click', doSetupConnect);
+document.getElementById('s-ip').addEventListener('keydown',   e => { if (e.key === 'Enter') document.getElementById('s-pass').focus(); });
+document.getElementById('s-pass').addEventListener('keydown', e => { if (e.key === 'Enter') doSetupConnect(); });
+
+// ── Boot ────────────────────────────────────────────────────
+function launchApp() {
+  document.getElementById('setup').classList.add('gone');
+  document.getElementById('app').classList.remove('hidden');
+  connectWS();
+  msgInput.focus();
+}
+
+// Auto-boot if params in URL
+if (IP && PASS) {
+  launchApp();
+}
+</script>
+</body>
+</html>
