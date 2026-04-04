@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Timeline</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0e0f14;--sb:#13141a;--border:#1e2030;--hover:#181924;
+  --text:#dde1f0;--muted:#5e6479;--accent:#7c6af7;--adim:rgba(124,106,247,.14);
+  --accent2:#a78bfa;--accent-glow:rgba(124,106,247,.22);
+  --red:#f87171;--green:#34d399;--yellow:#fbbf24;
+  --red-dim:rgba(248,113,113,.12);--green-dim:rgba(52,211,153,.1);
+  --red-brd:rgba(248,113,113,.25);--green-brd:rgba(52,211,153,.22);
+  --code:'JetBrains Mono',monospace;--ui:'Inter',sans-serif;
+}
+html,body{width:100%;height:100%;overflow:hidden;font-family:var(--ui);background:var(--bg);color:var(--text);font-size:13px}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:var(--muted)}
+
+.app{display:flex;flex-direction:column;height:100%;width:100%}
+
+/* ── HEADER ── */
+.hdr{
+  flex-shrink:0;height:38px;background:var(--sb);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;padding:0 12px;
+  user-select:none;
+}
+.hdr-logo{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:var(--accent);font-family:var(--code);letter-spacing:.4px}
+.hdr-icon{width:22px;height:22px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.hdr-icon svg{width:13px;height:13px;fill:#fff}
+.conn-pill{display:flex;align-items:center;gap:5px;padding:2px 8px;background:var(--hover);border:1px solid var(--border);border-radius:20px;font-size:10px;color:var(--muted);flex-shrink:0;margin-left:auto}
+.conn-dot{width:6px;height:6px;border-radius:50%;background:var(--red);transition:background .4s;flex-shrink:0}
+.conn-dot.on{background:var(--green);box-shadow:0 0 5px rgba(52,211,153,.5)}
+.hdr-clear{height:24px;padding:0 9px;background:none;border:1px solid var(--border);border-radius:6px;color:var(--muted);font-size:10.5px;cursor:pointer;display:flex;align-items:center;gap:4px;transition:all .15s;font-family:var(--ui);flex-shrink:0}
+.hdr-clear:hover{color:var(--red);border-color:rgba(248,113,113,.4);background:rgba(248,113,113,.06)}
+.hdr-clear svg{width:11px;height:11px}
+
+/* ── LAYOUT ── */
+.body{flex:1;display:flex;overflow:hidden}
+
+/* ── LEFT: FILE LIST ── */
+.files-pane{width:210px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;background:var(--sb)}
+.pane-head{flex-shrink:0;padding:8px 12px 6px;font-size:9.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px}
+.pane-head svg{width:10px;height:10px}
+.badge{margin-left:auto;padding:1px 6px;background:var(--adim);border:1px solid rgba(124,106,247,.25);border-radius:10px;font-size:9px;color:var(--accent);font-family:var(--code)}
+.files-list{flex:1;overflow-y:auto;padding:4px 0}
+.fitem{display:flex;align-items:center;gap:7px;padding:5px 10px;cursor:pointer;border-radius:6px;margin:0 4px;transition:background .1s;border:1px solid transparent}
+.fitem:hover{background:var(--hover)}
+.fitem.sel{background:var(--adim);border-color:rgba(124,106,247,.2);color:var(--accent)}
+.fitem-ico{font-size:12px;flex-shrink:0;line-height:1}
+.fitem-info{flex:1;min-width:0}
+.fitem-name{font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fitem-meta{font-size:10px;color:var(--muted);margin-top:1px}
+.fitem-count{flex-shrink:0;padding:1px 5px;background:var(--sb);border:1px solid var(--border);border-radius:10px;font-size:9.5px;color:var(--muted);font-family:var(--code)}
+.fitem.sel .fitem-count{background:var(--accent);border-color:var(--accent);color:#fff}
+.empty-files{padding:24px 14px;font-size:11.5px;color:var(--muted);text-align:center;line-height:1.8;opacity:.75}
+
+/* ── RIGHT: CONTENT ── */
+.content-pane{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+
+/* ── TIMELINE ENTRIES ── */
+.timeline-list{flex:1;overflow-y:auto;padding:10px}
+.tl-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:10px;color:var(--muted);opacity:.6}
+.tl-empty svg{width:38px;height:38px;opacity:.4}
+.tl-empty p{font-size:12px}
+
+.tl-entry{margin-bottom:10px;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--sb)}
+.tl-entry-hdr{
+  display:flex;align-items:center;gap:8px;padding:8px 12px;
+  cursor:pointer;user-select:none;transition:background .1s;
+  border-bottom:1px solid transparent;
+}
+.tl-entry-hdr:hover{background:var(--hover)}
+.tl-entry.open .tl-entry-hdr{border-bottom-color:var(--border);background:var(--hover)}
+.tl-arr{font-size:8px;color:var(--muted);transition:transform .2s;flex-shrink:0}
+.tl-entry.open .tl-arr{transform:rotate(90deg)}
+.tl-time{font-size:11px;font-weight:600;color:var(--text);font-family:var(--code)}
+.tl-ago{font-size:10px;color:var(--muted);margin-left:2px}
+.tl-stats{display:flex;align-items:center;gap:6px;margin-left:auto;flex-shrink:0}
+.tl-add{font-size:10.5px;color:var(--green);font-family:var(--code);font-weight:500}
+.tl-del{font-size:10.5px;color:var(--red);font-family:var(--code);font-weight:500}
+.tl-restore-btn{
+  height:22px;padding:0 8px;font-size:10px;font-weight:500;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  border:none;border-radius:5px;color:#fff;cursor:pointer;
+  font-family:var(--ui);transition:opacity .2s;flex-shrink:0;
+  box-shadow:0 2px 6px var(--accent-glow);
+}
+.tl-restore-btn:hover{opacity:.85}
+.tl-restore-btn:active{opacity:.7;transform:scale(.97)}
+
+/* ── DIFF VIEW ── */
+.diff-wrap{display:none;overflow-x:auto}
+.tl-entry.open .diff-wrap{display:block}
+.diff-table{width:100%;border-collapse:collapse;font-family:var(--code);font-size:11.5px;line-height:1.6}
+.diff-table td{padding:0;vertical-align:top}
+.diff-ln{
+  width:36px;min-width:36px;text-align:right;padding:0 8px;
+  color:var(--muted);font-size:10.5px;border-right:1px solid var(--border);
+  user-select:none;background:var(--bg);
+}
+.diff-sign{
+  width:18px;min-width:18px;text-align:center;padding:0 2px;
+  font-weight:700;user-select:none;
+}
+.diff-code{padding:0 10px 0 4px;white-space:pre;word-break:break-all;flex:1}
+.diff-row-add{background:var(--green-dim)}
+.diff-row-add .diff-ln{background:rgba(52,211,153,.06);border-color:var(--green-brd)}
+.diff-row-add .diff-sign{color:var(--green)}
+.diff-row-add .diff-code{color:var(--green)}
+.diff-row-del{background:var(--red-dim)}
+.diff-row-del .diff-ln{background:rgba(248,113,113,.06);border-color:var(--red-brd)}
+.diff-row-del .diff-sign{color:var(--red)}
+.diff-row-del .diff-code{color:var(--red)}
+.diff-row-ctx .diff-ln{background:var(--bg)}
+.diff-row-ctx .diff-sign{color:var(--muted)}
+.diff-row-ctx .diff-code{color:var(--muted)}
+.diff-sep{background:var(--bg);text-align:center;font-size:10px;color:var(--muted);padding:3px 0;border-top:1px dashed var(--border);border-bottom:1px dashed var(--border)}
+
+/* ── RESTORE CONFIRM TOAST ── */
+.toast{
+  position:fixed;bottom:16px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--sb);border:1px solid var(--border);border-radius:8px;
+  padding:9px 14px;font-size:11.5px;color:var(--text);
+  box-shadow:0 8px 30px rgba(0,0,0,.5);
+  display:flex;align-items:center;gap:10px;z-index:999;
+  opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;white-space:nowrap;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto}
+.toast-ok{padding:3px 10px;background:var(--accent);border:none;border-radius:5px;color:#fff;font-size:11px;cursor:pointer;font-family:var(--ui)}
+.toast-ok:hover{opacity:.85}
+.toast-icon{font-size:14px}
+
+/* ── NO CONN OVERLAY ── */
+#noConn{
+  position:absolute;inset:0;z-index:50;display:none;
+  flex-direction:column;align-items:center;justify-content:center;
+  gap:12px;background:var(--bg);text-align:center;padding:24px;
+}
+#noConn.show{display:flex}
+#noConn svg{width:40px;height:40px;fill:var(--muted);opacity:.45}
+.nc-t{font-size:13px;font-weight:500;color:var(--muted)}
+.nc-s{font-size:11.5px;color:var(--muted);opacity:.65;max-width:200px;line-height:1.7}
+.retry-btn{margin-top:4px;padding:6px 16px;background:var(--sb);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;cursor:pointer;transition:background .15s;font-family:var(--ui)}
+.retry-btn:hover{background:var(--hover)}
+</style>
+</head>
+<body style="position:relative">
+
+<div id="noConn">
+  <svg viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+  <div class="nc-t">Not connected</div>
+  <div class="nc-s">Waiting for openIDE server…</div>
+  <button class="retry-btn" onclick="connect()">↺ Retry</button>
+</div>
+
+<div class="app" id="mainApp">
+  <div class="hdr">
+    <div class="hdr-logo">
+      <div class="hdr-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
+      </div>
+      Timeline
+    </div>
+    <div class="conn-pill">
+      <div class="conn-dot" id="connDot"></div>
+      <span id="connLabel">—</span>
+    </div>
+    <button class="hdr-clear" id="btnClear" title="Clear all history">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+      Clear All
+    </button>
+  </div>
+
+  <div class="body">
+    <div class="files-pane">
+      <div class="pane-head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Tracked Files
+        <span class="badge" id="fileCountBadge">0</span>
+      </div>
+      <div class="files-list" id="filesList">
+        <div class="empty-files">No changes yet.<br>Save a file in openIDE<br>to start tracking.</div>
+      </div>
+    </div>
+
+    <div class="content-pane">
+      <div class="timeline-list" id="timelineList">
+        <div class="tl-empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+          <p>Select a file to view its timeline</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <span class="toast-icon">⏪</span>
+  <span id="toastMsg">Restore this version?</span>
+  <button class="toast-ok" id="toastConfirm">Restore</button>
+  <button class="toast-ok" style="background:var(--hover);color:var(--text);border:1px solid var(--border)" id="toastCancel">Cancel</button>
+</div>
+
+<script>
+const params = new URLSearchParams(location.search);
+const PASS   = params.get('pass') || '';
+const IP     = params.get('ip')   || 'localhost';
+
+const MAX_ENTRIES   = 20;
+const STORAGE_KEY   = 'tl_v2';
+const CTX_LINES     = 3;
+
+let ws            = null;
+let connected     = false;
+let history       = {};
+let selectedFile  = null;
+let pendingLoads  = {};
+let pendingRestore = null;
+
+function loadStorage(){
+  try{ const d = localStorage.getItem(STORAGE_KEY); if(d) history = JSON.parse(d); }catch{}
+}
+function saveStorage(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(history)); }catch{}
+}
+
+loadStorage();
+renderFileList();
+
+function connect(){
+  document.getElementById('noConn').classList.remove('show');
+  try{
+    ws = new WebSocket(`ws://${IP}:3000`);
+    ws.onopen    = () => setConn(true);
+    ws.onclose   = () => setConn(false);
+    ws.onerror   = () => setConn(false);
+    ws.onmessage = e => { try{ onMsg(JSON.parse(e.data)); }catch{} };
+  }catch{ setConn(false); }
+}
+
+function setConn(v){
+  connected = v;
+  document.getElementById('connDot').className  = 'conn-dot' + (v ? ' on' : '');
+  document.getElementById('connLabel').textContent = v ? 'Live' : 'Off';
+  if(!v){
+    document.getElementById('noConn').classList.add('show');
+    setTimeout(connect, 3000);
+  }
+}
+
+function send(obj){
+  if(ws && ws.readyState === WebSocket.OPEN)
+    ws.send(JSON.stringify({...obj, password: PASS}));
+}
+
+function onMsg(msg){
+  if(msg.type === 'file-saved' || msg.type === 'file-created'){
+    const fp = msg.name || msg.path;
+    if(!fp || fp.startsWith('node_modules/') || fp.includes('/node_modules/')) return;
+    send({ type: 'load-file', name: fp });
+    if(!pendingLoads[fp]) pendingLoads[fp] = { waitingForContent: true };
+  }
+
+  if(msg.type === 'file-content'){
+    const fp = msg.name || msg.path || '';
+    if(!fp) return;
+    if(!pendingLoads[fp]) return;
+    delete pendingLoads[fp];
+
+    const content = msg.content || msg.data || '';
+    recordChange(fp, content);
+  }
+}
+
+function recordChange(fp, newContent){
+  const prev = history[fp];
+  const lastContent = prev && prev.length > 0 ? prev[0].content : null;
+
+  if(lastContent === newContent) return;
+
+  const entry = {
+    id: Date.now(),
+    ts: Date.now(),
+    content: newContent,
+    prev: lastContent
+  };
+
+  if(!history[fp]) history[fp] = [];
+  history[fp].unshift(entry);
+  if(history[fp].length > MAX_ENTRIES) history[fp] = history[fp].slice(0, MAX_ENTRIES);
+
+  saveStorage();
+  renderFileList();
+  if(selectedFile === fp) renderTimeline(fp);
+}
+
+function renderFileList(){
+  const el = document.getElementById('filesList');
+  const badge = document.getElementById('fileCountBadge');
+  const files = Object.keys(history).filter(f => history[f] && history[f].length > 0);
+  badge.textContent = files.length;
+
+  if(!files.length){
+    el.innerHTML = '<div class="empty-files">No changes yet.<br>Save a file in openIDE<br>to start tracking.</div>';
+    return;
+  }
+
+  files.sort((a,b) => {
+    const ta = history[a][0]?.ts || 0;
+    const tb = history[b][0]?.ts || 0;
+    return tb - ta;
+  });
+
+  el.innerHTML = '';
+  for(const fp of files){
+    const entries = history[fp];
+    const name = fp.split('/').pop();
+    const dir  = fp.substring(0, fp.lastIndexOf('/')) || '/';
+    const div  = document.createElement('div');
+    div.className = 'fitem' + (fp === selectedFile ? ' sel' : '');
+    div.innerHTML = `
+      <span class="fitem-ico">${fileEmoji(name)}</span>
+      <div class="fitem-info">
+        <div class="fitem-name">${esc(name)}</div>
+        <div class="fitem-meta">${esc(dir)}</div>
+      </div>
+      <span class="fitem-count">${entries.length}</span>
+    `;
+    div.addEventListener('click', () => { selectedFile = fp; renderFileList(); renderTimeline(fp); });
+    el.appendChild(div);
+  }
+}
+
+function renderTimeline(fp){
+  const el = document.getElementById('timelineList');
+  const entries = history[fp] || [];
+
+  if(!entries.length){
+    el.innerHTML = '<div class="tl-empty"><p>No history for this file yet.</p></div>';
+    return;
+  }
+
+  el.innerHTML = '';
+  entries.forEach((entry, i) => {
+    const diff = computeDiff(entry.prev || '', entry.content);
+    const added   = diff.filter(l => l.type === 'add').length;
+    const deleted = diff.filter(l => l.type === 'del').length;
+
+    const card = document.createElement('div');
+    card.className = 'tl-entry';
+
+    const timeStr = formatTime(entry.ts);
+    const agoStr  = timeAgo(entry.ts);
+
+    card.innerHTML = `
+      <div class="tl-entry-hdr">
+        <span class="tl-arr">▶</span>
+        <span class="tl-time">${timeStr}</span>
+        <span class="tl-ago">${agoStr}</span>
+        <div class="tl-stats">
+          ${added   ? `<span class="tl-add">+${added}</span>` : ''}
+          ${deleted ? `<span class="tl-del">-${deleted}</span>` : ''}
+        </div>
+        <button class="tl-restore-btn" data-idx="${i}">⏪ Restore</button>
+      </div>
+      <div class="diff-wrap">${buildDiffHTML(diff)}</div>
+    `;
+
+    card.querySelector('.tl-entry-hdr').addEventListener('click', e => {
+      if(e.target.classList.contains('tl-restore-btn')) return;
+      card.classList.toggle('open');
+    });
+
+    card.querySelector('.tl-restore-btn').addEventListener('click', () => {
+      pendingRestore = { fp, content: entry.content, ts: entry.ts };
+      showToast(`Restore save from ${timeStr}?`);
+    });
+
+    el.appendChild(card);
+  });
+}
+
+function buildDiffHTML(diff){
+  if(!diff.length) return '<div style="padding:8px 12px;font-size:11px;color:var(--muted)">No changes</div>';
+
+  let html = '<table class="diff-table">';
+  let lOld = 0, lNew = 0;
+  let lastType = null;
+  let gapPending = false;
+
+  for(let i = 0; i < diff.length; i++){
+    const line = diff[i];
+
+    if(gapPending && line.type !== 'ctx-hidden'){
+      html += `<tr><td colspan="4" class="diff-sep">·····</td></tr>`;
+      gapPending = false;
+    }
+
+    if(line.type === 'ctx-hidden'){
+      gapPending = true;
+      continue;
+    }
+
+    const rowClass = line.type === 'add' ? 'diff-row-add' : line.type === 'del' ? 'diff-row-del' : 'diff-row-ctx';
+    const sign     = line.type === 'add' ? '+' : line.type === 'del' ? '-' : ' ';
+
+    let lOldDisp = '', lNewDisp = '';
+    if(line.type === 'del'){ lOld++; lOldDisp = lOld; }
+    else if(line.type === 'add'){ lNew++; lNewDisp = lNew; }
+    else { lOld++; lNew++; lOldDisp = lOld; lNewDisp = lNew; }
+
+    html += `<tr class="${rowClass}">
+      <td class="diff-ln">${lOldDisp || ''}</td>
+      <td class="diff-ln">${lNewDisp || ''}</td>
+      <td class="diff-sign">${sign}</td>
+      <td class="diff-code">${esc(line.text)}</td>
+    </tr>`;
+  }
+
+  html += '</table>';
+  return html;
+}
+
+function computeDiff(oldStr, newStr){
+  const oldLines = oldStr === null ? [] : oldStr.split('\n');
+  const newLines = newStr.split('\n');
+
+  const lcs = buildLCS(oldLines, newLines);
+  const raw = [];
+
+  let oi = 0, ni = 0, li = 0;
+  while(oi < oldLines.length || ni < newLines.length){
+    if(oi < oldLines.length && ni < newLines.length && li < lcs.length && oldLines[oi] === lcs[li] && newLines[ni] === lcs[li]){
+      raw.push({ type: 'ctx', text: oldLines[oi] });
+      oi++; ni++; li++;
+    } else if(ni < newLines.length && (li >= lcs.length || newLines[ni] !== lcs[li])){
+      raw.push({ type: 'add', text: newLines[ni] });
+      ni++;
+    } else {
+      raw.push({ type: 'del', text: oldLines[oi] });
+      oi++;
+    }
+  }
+
+  const changedIdx = new Set();
+  raw.forEach((l,i) => { if(l.type !== 'ctx') changedIdx.add(i); });
+
+  const visible = new Set();
+  changedIdx.forEach(i => {
+    for(let d = -CTX_LINES; d <= CTX_LINES; d++){
+      const j = i + d;
+      if(j >= 0 && j < raw.length) visible.add(j);
+    }
+  });
+
+  return raw.map((l, i) => {
+    if(l.type === 'ctx' && !visible.has(i)) return { type: 'ctx-hidden', text: '' };
+    return l;
+  });
+}
+
+function buildLCS(a, b){
+  const m = a.length, n = b.length;
+  const dp = Array.from({length: m+1}, () => new Array(n+1).fill(0));
+  for(let i = m-1; i >= 0; i--)
+    for(let j = n-1; j >= 0; j--)
+      dp[i][j] = a[i] === b[j] ? 1 + dp[i+1][j+1] : Math.max(dp[i+1][j], dp[i][j+1]);
+  const lcs = [];
+  let i = 0, j = 0;
+  while(i < m && j < n){
+    if(a[i] === b[j]){ lcs.push(a[i]); i++; j++; }
+    else if(dp[i+1][j] >= dp[i][j+1]) i++;
+    else j++;
+  }
+  return lcs;
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  t.classList.add('show');
+}
+function hideToast(){ document.getElementById('toast').classList.remove('show'); }
+
+document.getElementById('toastConfirm').addEventListener('click', () => {
+  if(!pendingRestore) return;
+  const { fp, content } = pendingRestore;
+  send({ type: 'create-file', name: fp, content });
+  pendingRestore = null;
+  hideToast();
+});
+document.getElementById('toastCancel').addEventListener('click', () => { pendingRestore = null; hideToast(); });
+
+document.getElementById('btnClear').addEventListener('click', () => {
+  if(!confirm('Clear all timeline history? This cannot be undone.')) return;
+  history = {};
+  selectedFile = null;
+  saveStorage();
+  renderFileList();
+  document.getElementById('timelineList').innerHTML = '<div class="tl-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg><p>Select a file to view its timeline</p></div>';
+});
+
+function formatTime(ts){
+  const d = new Date(ts);
+  return d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'}) + ' ' + d.toLocaleDateString([], {month:'short',day:'numeric'});
+}
+function timeAgo(ts){
+  const s = Math.floor((Date.now() - ts) / 1000);
+  if(s < 60)  return `${s}s ago`;
+  if(s < 3600) return `${Math.floor(s/60)}m ago`;
+  if(s < 86400) return `${Math.floor(s/3600)}h ago`;
+  return `${Math.floor(s/86400)}d ago`;
+}
+function fileEmoji(name){
+  const e = (name.split('.').pop() || '').toLowerCase();
+  const map = {js:'🟨',ts:'🔷',jsx:'⚛️',tsx:'⚛️',py:'🐍',html:'🌐',css:'🎨',scss:'🎨',json:'📋',md:'📝',sh:'⚙️',go:'🐹',rs:'🦀',rb:'💎',vue:'💚',svelte:'🔥',sql:'🗄️',yaml:'⚙️',yml:'⚙️',env:'🔑'};
+  return map[e] || '📄';
+}
+function esc(s){ const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+setInterval(() => { if(selectedFile) renderTimeline(selectedFile); }, 30000);
+
+connect();
+</script>
+</body>
+</html>
