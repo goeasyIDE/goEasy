@@ -3,13 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Live Server · Auto‑refresh iframe</title>
+  <title>Live Server · Auto-refresh iframe</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -18,6 +14,7 @@
       background: #0a0c0f;
     }
 
+    /* ── iframe layer ── */
     #iframe-layer {
       display: none;
       position: fixed;
@@ -25,10 +22,99 @@
       flex-direction: column;
       background: #0f0f0f;
     }
-    #iframe-layer.active {
+    #iframe-layer.active { display: flex; }
+
+    /* ── TOP TOOLBAR ── */
+    #top-bar {
       display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      background: #111214;
+      border-bottom: 1px solid #23262e;
+      flex-shrink: 0;
+      min-height: 46px;
     }
 
+    /* live badge */
+    .live-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #0e2218;
+      border: 1px solid #1a3d2a;
+      padding: 4px 11px;
+      border-radius: 40px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      color: #4ade80;
+      flex-shrink: 0;
+    }
+    .pulse {
+      width: 7px; height: 7px;
+      background: #4ade80;
+      border-radius: 50%;
+      animation: pulse-glow 1.4s infinite ease-in-out alternate;
+    }
+    @keyframes pulse-glow {
+      from { opacity: 0.4; transform: scale(0.8); box-shadow: 0 0 3px #4ade80; }
+      to   { opacity: 1;   transform: scale(1.2); box-shadow: 0 0 8px #4ade80; }
+    }
+
+    /* url pill */
+    #url-pill {
+      flex: 1;
+      min-width: 0;
+      background: #1a1c22;
+      border: 1px solid #2a2d36;
+      border-radius: 8px;
+      padding: 5px 13px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 12px;
+      color: #7a8394;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      cursor: default;
+      user-select: none;
+    }
+
+    /* top buttons */
+    .tb-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 13px;
+      border-radius: 8px;
+      border: 1px solid #2a2d36;
+      background: #1a1c22;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s, transform 0.1s;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+    .tb-btn:active { transform: scale(0.96); }
+
+    #reload-btn {
+      color: #60a5fa;
+      border-color: #1e3a5f;
+      background: #0f1e33;
+    }
+    #reload-btn:hover { background: #162947; border-color: #2a5080; color: #93c5fd; }
+    #reload-btn.spinning svg { animation: spin 0.5s linear; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    #change-link-btn {
+      color: #a78bfa;
+      border-color: #2e1f5e;
+      background: #130f2a;
+    }
+    #change-link-btn:hover { background: #1c1540; border-color: #4c3a8a; color: #c4b5fd; }
+
+    /* iframe */
     #site-frame {
       width: 100%;
       flex: 1;
@@ -36,82 +122,23 @@
       background: white;
     }
 
-    #change-bar {
-      background: #111214;
-      border-top: 1px solid #2a2d34;
-      padding: 10px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 13px;
-      color: #9aa0a8;
-      flex-shrink: 0;
-      backdrop-filter: blur(2px);
-    }
-
-    .left-actions {
+    /* ── bottom status bar ── */
+    #status-bar {
       display: flex;
       align-items: center;
       gap: 12px;
-    }
-
-    .live-badge {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      background: #1e2a2a;
-      padding: 4px 10px;
-      border-radius: 40px;
+      padding: 6px 16px;
+      background: #0d0f13;
+      border-top: 1px solid #1e2026;
       font-size: 11px;
-      font-weight: 500;
-      letter-spacing: 0.3px;
-      color: #6fcf97;
+      color: #4a5060;
+      flex-shrink: 0;
     }
-    .live-badge .pulse {
-      width: 8px;
-      height: 8px;
-      background: #3fe08b;
-      border-radius: 50%;
-      display: inline-block;
-      box-shadow: 0 0 5px #3fe08b;
-      animation: pulse-glow 1.4s infinite ease-out;
-    }
-    @keyframes pulse-glow {
-      0% { opacity: 0.5; transform: scale(0.8); }
-      100% { opacity: 1; transform: scale(1.2); background: #6effa8; box-shadow: 0 0 8px #6effa8; }
-    }
+    #status-text { color: #3d9e60; }
+    .status-sep { color: #23262e; }
+    #dev-hint { font-family: monospace; color: #3a3f4c; margin-left: auto; }
 
-    #change-url-btn {
-      color: #5b9cf6;
-      cursor: pointer;
-      background: none;
-      border: none;
-      font-size: 12.5px;
-      padding: 6px 12px;
-      border-radius: 20px;
-      transition: all 0.2s;
-      font-weight: 500;
-    }
-    #change-url-btn:hover {
-      background: #1f2937;
-      color: #7db4ff;
-    }
-
-    .auto-refresh-status {
-      font-size: 12px;
-      background: #1a1c22;
-      padding: 4px 12px;
-      border-radius: 40px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      color: #b9c3d4;
-    }
-    .refresh-icon-symbol {
-      font-size: 13px;
-      display: inline-block;
-    }
-
+    /* ── setup overlay ── */
     #setup-overlay {
       display: none;
       position: fixed;
@@ -120,16 +147,14 @@
       align-items: center;
       justify-content: center;
     }
-    #setup-overlay.active {
-      display: flex;
-    }
+    #setup-overlay.active { display: flex; }
 
     #blur-bg {
       position: absolute;
       inset: 0;
-      background: rgba(8, 10, 14, 0.86);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+      background: rgba(7, 9, 13, 0.88);
+      backdrop-filter: blur(22px);
+      -webkit-backdrop-filter: blur(22px);
     }
 
     #setup-card {
@@ -138,28 +163,20 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 0;
-      background: rgba(18, 22, 28, 0.75);
-      backdrop-filter: blur(12px);
-      padding: 40px 42px;
-      border-radius: 48px;
-      border: 1px solid rgba(75, 85, 99, 0.4);
-      box-shadow: 0 25px 40px -12px rgba(0,0,0,0.5);
-      width: 380px;
-      transition: all 0.2s;
-    }
-
-    #ls-icon {
-      width: 68px;
-      height: 68px;
-      object-fit: contain;
+      background: rgba(16, 20, 27, 0.8);
+      backdrop-filter: blur(14px);
+      padding: 42px 44px;
+      border-radius: 28px;
+      border: 1px solid rgba(60, 70, 90, 0.45);
+      box-shadow: 0 30px 50px -10px rgba(0,0,0,0.6);
+      width: 370px;
     }
 
     #setup-label {
-      margin-top: 22px;
+      margin-top: 20px;
       font-size: 18px;
       font-weight: 500;
-      color: #f0f3fa;
+      color: #edf0fa;
       letter-spacing: -0.2px;
       transition: opacity 0.2s, transform 0.2s;
     }
@@ -167,222 +184,242 @@
     #url-input-wrap, #inline-change-wrap {
       width: 100%;
       display: none;
-      margin-top: 28px;
+      margin-top: 26px;
     }
-    #url-input-wrap.visible, #inline-change-wrap.visible {
-      display: block;
-    }
+    #url-input-wrap.visible, #inline-change-wrap.visible { display: block; }
 
     #url-input, #inline-url-input {
       width: 100%;
-      padding: 12px 16px;
-      background: #0f1117;
-      border: 1px solid #2d313a;
-      border-radius: 44px;
-      color: #f1f3f8;
-      font-size: 14px;
+      padding: 11px 17px;
+      background: #0c0e15;
+      border: 1px solid #2a2e38;
+      border-radius: 40px;
+      color: #edf0fa;
+      font-size: 13px;
       outline: none;
-      transition: all 0.2s;
-      font-family: monospace;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      font-family: 'SF Mono', 'Fira Code', monospace;
     }
     #url-input:focus, #inline-url-input:focus {
       border-color: #5b9cf6;
-      box-shadow: 0 0 0 2px rgba(91, 156, 246, 0.2);
+      box-shadow: 0 0 0 3px rgba(91,156,246,0.18);
     }
 
     #continue-btn {
-      margin-top: 32px;
-      padding: 10px 28px;
-      background: #5b9cf6;
-      color: white;
+      margin-top: 28px;
+      padding: 10px 32px;
+      background: #3b82f6;
+      color: #fff;
       border: none;
-      border-radius: 60px;
-      font-size: 14px;
-      font-weight: 500;
+      border-radius: 50px;
+      font-size: 13px;
+      font-weight: 600;
       cursor: pointer;
-      transition: 0.2s;
-      width: auto;
-      min-width: 140px;
+      transition: background 0.2s, transform 0.1s;
+      min-width: 130px;
     }
-    #continue-btn:hover {
-      background: #4a8de4;
-      transform: scale(0.98);
-    }
+    #continue-btn:hover { background: #2563eb; }
+    #continue-btn:active { transform: scale(0.97); }
 
     .note-text {
-      margin-top: 20px;
+      margin-top: 18px;
       font-size: 11px;
-      color: #6c7283;
+      color: #555d70;
       text-align: center;
+      line-height: 1.5;
     }
   </style>
 </head>
 <body>
 
+  <!-- ── IFRAME LAYER ── -->
   <div id="iframe-layer">
-    <iframe id="site-frame" src="" allowfullscreen sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals allow-top-navigation allow-downloads"></iframe>
-    <div id="change-bar">
-      <div class="left-actions">
-        <div class="live-badge">
-          <span class="pulse"></span>
-          <span>LIVE RELOAD</span>
-        </div>
-        <div class="auto-refresh-status" id="refresh-status-badge">
-          <span class="refresh-icon-symbol">🔄</span>
-          <span id="refresh-mode-text">auto‑refresh on change</span>
-        </div>
+
+    <!-- TOP TOOLBAR -->
+    <div id="top-bar">
+
+      <div class="live-badge">
+        <span class="pulse"></span>
+        LIVE
       </div>
-      <button id="change-url-btn">✎ change website</button>
+
+      <!-- Reload button -->
+      <button class="tb-btn" id="reload-btn" title="Reload page (Ctrl+Alt+R)">
+        <svg width="13" height="13" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M1 4v5h5"/>
+          <path d="M17 14v-5h-5"/>
+          <path d="M15.51 7A7 7 0 1 0 16 11"/>
+        </svg>
+        Reload
+      </button>
+
+      <!-- URL display -->
+      <div id="url-pill">about:blank</div>
+
+      <!-- Change link button -->
+      <button class="tb-btn" id="change-link-btn" title="Change website URL">
+        <svg width="13" height="13" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10 13H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h6"/>
+          <polyline points="13 3 17 3 17 7"/>
+          <line x1="8" y1="10" x2="17" y2="3"/>
+        </svg>
+        Change link
+      </button>
+
     </div>
+
+    <!-- IFRAME -->
+    <iframe id="site-frame" src="" allowfullscreen
+      sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals allow-top-navigation allow-downloads">
+    </iframe>
+
+    <!-- BOTTOM STATUS BAR -->
+    <div id="status-bar">
+      <span id="status-text">● auto-refresh active</span>
+      <span class="status-sep">|</span>
+      <span>BroadcastChannel · storage · postMessage</span>
+      <span id="dev-hint">Ctrl+Alt+R — force reload · window.triggerLiveReload()</span>
+    </div>
+
   </div>
 
+  <!-- ── SETUP OVERLAY ── -->
   <div id="setup-overlay">
     <div id="blur-bg"></div>
     <div id="setup-card">
-      <div id="icon-container">
-        <svg width="68" height="68" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="16" cy="16" r="13" stroke="#5b9cf6" stroke-width="1.6"/>
-          <path d="M10 16L14 20L22 12" stroke="#5b9cf6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M24 26L28 28L26 24" stroke="#6c8eff" stroke-width="1.4" stroke-linecap="round"/>
-          <circle cx="26" cy="26" r="2" fill="#5b9cf6" fill-opacity="0.5" stroke="#5b9cf6" stroke-width="1"/>
-        </svg>
-      </div>
+
+      <svg width="62" height="62" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="16" cy="16" r="13" stroke="#3b82f6" stroke-width="1.6"/>
+        <path d="M10 16L14 20L22 12" stroke="#3b82f6" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M24 26L28 28L26 24" stroke="#818cf8" stroke-width="1.4" stroke-linecap="round"/>
+        <circle cx="26" cy="26" r="2.2" fill="#3b82f6" fill-opacity="0.45" stroke="#3b82f6" stroke-width="1"/>
+      </svg>
+
       <div id="setup-label">Let's get you set up</div>
+
       <div id="url-input-wrap">
         <input id="url-input" type="url" placeholder="https:// or http:// ..." autocomplete="off" spellcheck="false"/>
       </div>
       <div id="inline-change-wrap">
         <input id="inline-url-input" type="url" placeholder="https://example.com" autocomplete="off" spellcheck="false"/>
       </div>
+
       <button id="continue-btn">Continue</button>
-      <div class="note-text">auto‑refresh will keep iframe updated when code changes</div>
+      <p class="note-text">auto-refresh keeps the iframe updated whenever your code changes</p>
     </div>
   </div>
 
   <script>
-    (function() {
-      const LS_KEY = 'live-server-extension-url';
-      let step = 1;
-      let changeMode = false;
-      
-      const iframeLayer   = document.getElementById('iframe-layer');
-      const setupOverlay  = document.getElementById('setup-overlay');
-      const siteFrame     = document.getElementById('site-frame');
-      const setupLabel    = document.getElementById('setup-label');
-      const urlInputWrap  = document.getElementById('url-input-wrap');
-      const urlInput      = document.getElementById('url-input');
+    (function () {
+      const LS_KEY = 'live-server-url-v2';
+      let step = 1, changeMode = false;
+
+      const iframeLayer      = document.getElementById('iframe-layer');
+      const setupOverlay     = document.getElementById('setup-overlay');
+      const siteFrame        = document.getElementById('site-frame');
+      const setupLabel       = document.getElementById('setup-label');
+      const urlInputWrap     = document.getElementById('url-input-wrap');
+      const urlInput         = document.getElementById('url-input');
       const inlineChangeWrap = document.getElementById('inline-change-wrap');
       const inlineUrlInput   = document.getElementById('inline-url-input');
-      const continueBtn   = document.getElementById('continue-btn');
-      const changeUrlBtn  = document.getElementById('change-url-btn');
-      const refreshModeSpan = document.getElementById('refresh-mode-text');
-      
-      let currentReloadChannel = null;
-      
+      const continueBtn      = document.getElementById('continue-btn');
+      const reloadBtn        = document.getElementById('reload-btn');
+      const changeLinkBtn    = document.getElementById('change-link-btn');
+      const urlPill          = document.getElementById('url-pill');
+      const statusText       = document.getElementById('status-text');
+
+      let reloadChannel = null;
+
+      /* ── helpers ── */
+      function setStatus(msg, color) {
+        statusText.textContent = msg;
+        statusText.style.color = color || '#3d9e60';
+      }
+
+      function updateUrlPill(url) {
+        try { urlPill.textContent = new URL(url).href; } catch { urlPill.textContent = url; }
+      }
+
+      /* ── reload ── */
       function refreshIframe() {
         if (!iframeLayer.classList.contains('active')) return;
-        const currentSrc = siteFrame.src;
-        if (currentSrc && currentSrc !== 'about:blank') {
-          const temp = currentSrc;
-          siteFrame.src = 'about:blank';
-          setTimeout(() => {
-            siteFrame.src = temp;
-          }, 30);
-          updateRefreshBadge('reloading ...', true);
-          setTimeout(() => updateRefreshBadge('auto‑refresh on change', false), 1200);
-        }
+        const src = siteFrame.src;
+        if (!src || src === 'about:blank') return;
+
+        siteFrame.src = 'about:blank';
+        setTimeout(() => { siteFrame.src = src; }, 30);
+
+        setStatus('↻ reloading…', '#60a5fa');
+        reloadBtn.classList.add('spinning');
+        setTimeout(() => {
+          reloadBtn.classList.remove('spinning');
+          setStatus('● auto-refresh active', '#3d9e60');
+        }, 900);
       }
-      
-      function updateRefreshBadge(text, isFlash = false) {
-        if (refreshModeSpan) {
-          refreshModeSpan.textContent = text;
-          if (isFlash) {
-            const badgeParent = document.querySelector('.auto-refresh-status');
-            if (badgeParent) badgeParent.style.opacity = '0.7';
-            setTimeout(() => { if (badgeParent) badgeParent.style.opacity = '1'; }, 400);
-          }
-        }
-      }
-      
-      function initAutoReloadSystem() {
+
+      /* ── auto-reload listeners ── */
+      function initAutoReload() {
         try {
-          if (currentReloadChannel) currentReloadChannel.close();
-          currentReloadChannel = new BroadcastChannel('live_server_reload_channel');
-          currentReloadChannel.onmessage = (event) => {
-            if (event.data && (event.data.type === 'reload' || event.data === 'reload')) {
+          if (reloadChannel) reloadChannel.close();
+          reloadChannel = new BroadcastChannel('live_server_reload_channel');
+          reloadChannel.onmessage = (e) => {
+            if (e.data && (e.data.type === 'reload' || e.data === 'reload' || e.data.action === 'code-change'))
               refreshIframe();
-            } else if (event.data && event.data.action === 'code-change') {
-              refreshIframe();
-            }
           };
-        } catch(e) {}
-        
+        } catch (_) {}
+
         window.addEventListener('storage', (e) => {
           if (e.key === 'live_reload_trigger' || e.key === 'live-server-force-refresh') {
             refreshIframe();
             if (e.key === 'live_reload_trigger') localStorage.removeItem('live_reload_trigger');
           }
         });
-        
-        window.addEventListener('liveserver:refresh', () => refreshIframe());
-        
-        window.triggerLiveReload = function(message) {
-          refreshIframe();
-        };
-        
-        window.addEventListener('message', (event) => {
-          if (event.data && (event.data.type === 'code-updated' || event.data === 'refresh-iframe')) {
+
+        window.addEventListener('liveserver:refresh', refreshIframe);
+
+        window.addEventListener('message', (e) => {
+          if (e.data && (e.data.type === 'code-updated' || e.data === 'refresh-iframe'))
             refreshIframe();
-          }
         });
-        
-        updateRefreshBadge('auto‑refresh on change', false);
+
+        window.triggerLiveReload = refreshIframe;
       }
-      
+
+      /* ── keyboard shortcut ── */
       document.addEventListener('keydown', (e) => {
-        if (e.ctrlKey && e.altKey && e.key === 'r') {
-          e.preventDefault();
-          refreshIframe();
-          updateRefreshBadge('manual refresh', true);
-          setTimeout(() => updateRefreshBadge('auto‑refresh on change', false), 1000);
-        }
+        if (e.ctrlKey && e.altKey && e.key === 'r') { e.preventDefault(); refreshIframe(); }
       });
-      
+
+      /* ── url helpers ── */
       function normalizeUrl(raw) {
         raw = raw.trim();
         if (!raw) return null;
         if (!/^https?:\/\//i.test(raw)) raw = 'https://' + raw;
-        try {
-          new URL(raw);
-          return raw;
-        } catch { return null; }
+        try { new URL(raw); return raw; } catch { return null; }
       }
-      
+
       function loadSite(url) {
-        if (!url) return;
         siteFrame.src = url;
+        updateUrlPill(url);
         setupOverlay.classList.remove('active');
         iframeLayer.classList.add('active');
-        updateRefreshBadge('auto‑refresh on change', false);
+        setStatus('● auto-refresh active', '#3d9e60');
       }
-      
+
+      /* ── setup flow ── */
       function showSetup() {
-        changeMode = false;
-        step = 1;
-        setupLabel.style.display = 'block';
-        setupLabel.style.opacity = '1';
-        setupLabel.style.transform = 'translateY(0px)';
+        changeMode = false; step = 1;
+        setupLabel.style.cssText = 'display:block;opacity:1;transform:translateY(0)';
         setupLabel.textContent = "Let's get you set up";
         urlInputWrap.classList.remove('visible');
         inlineChangeWrap.classList.remove('visible');
         setupOverlay.classList.add('active');
         iframeLayer.classList.remove('active');
       }
-      
+
       function showChangeMode() {
         changeMode = true;
-        setupLabel.style.display = 'block';
-        setupLabel.style.opacity = '1';
+        setupLabel.style.cssText = 'display:block;opacity:1;transform:translateY(0)';
         setupLabel.textContent = 'Change website URL';
         urlInputWrap.classList.remove('visible');
         inlineChangeWrap.classList.add('visible');
@@ -391,21 +428,17 @@
         iframeLayer.classList.remove('active');
         setTimeout(() => inlineUrlInput.focus(), 80);
       }
-      
+
+      /* ── continue button ── */
       continueBtn.addEventListener('click', () => {
         if (changeMode) {
-          const raw = inlineUrlInput.value;
-          const url = normalizeUrl(raw);
-          if (!url) {
-            inlineUrlInput.style.border = '1px solid #e24b4a';
-            return;
-          }
-          inlineUrlInput.style.border = '1px solid #2d313a';
+          const url = normalizeUrl(inlineUrlInput.value);
+          if (!url) { inlineUrlInput.style.borderColor = '#e24b4a'; return; }
+          inlineUrlInput.style.borderColor = '#2a2e38';
           localStorage.setItem(LS_KEY, url);
           loadSite(url);
           return;
         }
-        
         if (step === 1) {
           step = 2;
           setupLabel.style.opacity = '0';
@@ -417,66 +450,34 @@
           }, 200);
           return;
         }
-        
         if (step === 2) {
-          const raw = urlInput.value;
-          const url = normalizeUrl(raw);
-          if (!url) {
-            urlInput.style.border = '1px solid #e24b4a';
-            return;
-          }
-          urlInput.style.border = '1px solid #2d313a';
+          const url = normalizeUrl(urlInput.value);
+          if (!url) { urlInput.style.borderColor = '#e24b4a'; return; }
+          urlInput.style.borderColor = '#2a2e38';
           localStorage.setItem(LS_KEY, url);
           loadSite(url);
         }
       });
-      
-      urlInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') continueBtn.click(); });
+
+      urlInput.addEventListener('keydown',       (e) => { if (e.key === 'Enter') continueBtn.click(); });
       inlineUrlInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') continueBtn.click(); });
-      changeUrlBtn.addEventListener('click', () => showChangeMode());
-      
-      siteFrame.addEventListener('error', () => {
-        if (iframeLayer.classList.contains('active')) {
-          updateRefreshBadge('⚠️ load error', true);
-          setTimeout(() => updateRefreshBadge('auto‑refresh on change', false), 2000);
-        }
-      });
-      
+
+      reloadBtn.addEventListener('click',     refreshIframe);
+      changeLinkBtn.addEventListener('click', showChangeMode);
+
       siteFrame.addEventListener('load', () => {
-        if (iframeLayer.classList.contains('active')) {
-          updateRefreshBadge('connected · auto‑refresh', false);
-        }
+        if (iframeLayer.classList.contains('active'))
+          setStatus('● connected · auto-refresh', '#3d9e60');
       });
-      
-      initAutoReloadSystem();
-      
-      const devHint = document.createElement('div');
-      devHint.textContent = '⚡ dev: Ctrl+Alt+R → force refresh · window.triggerLiveReload()';
-      devHint.style.position = 'fixed';
-      devHint.style.bottom = '8px';
-      devHint.style.right = '12px';
-      devHint.style.fontSize = '10px';
-      devHint.style.backgroundColor = '#1a1c22cc';
-      devHint.style.color = '#aaa';
-      devHint.style.padding = '4px 12px';
-      devHint.style.borderRadius = '20px';
-      devHint.style.zIndex = '1000';
-      devHint.style.backdropFilter = 'blur(4px)';
-      devHint.style.pointerEvents = 'none';
-      devHint.style.fontFamily = 'monospace';
-      document.body.appendChild(devHint);
-      
+
+      /* ── init ── */
+      initAutoReload();
+
       const saved = localStorage.getItem(LS_KEY);
-      if (saved) {
-        loadSite(saved);
-      } else {
-        showSetup();
-      }
-      
-      window.__demoCodeChange = function() {
-        refreshIframe();
-      };
+      if (saved) loadSite(saved); else showSetup();
+
+      window.__demoCodeChange = refreshIframe;
     })();
   </script>
 </body>
-</html>
+  </html>
