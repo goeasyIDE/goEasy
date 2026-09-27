@@ -1,0 +1,1287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Admin · CraftersGPT</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #0d0f13;
+    --panel: #1a1d24;
+    --panel-2: #20242c;
+    --border: #2a2e38;
+    --text: #e9eaec;
+    --muted: #8b909c;
+    --accent: #5b8def;
+    --danger: #ef5a5a;
+    --danger-dim: #3a1414;
+    --success: #4cd07a;
+    --success-dim: #123320;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    min-height: 100%;
+  }
+  body {
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  code, .mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+  a { color: inherit; }
+  button { font-family: inherit; cursor: pointer; }
+
+  #topbar {
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    z-index: 10;
+  }
+  #navbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+  }
+  #navbar img.navlogo {
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    object-fit: cover;
+  }
+  #navbar .navtitle {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  #navbar .navsub {
+    font-size: 13px;
+    color: var(--muted);
+  }
+  #navbar .spacer { flex: 1; }
+  #logoutBtn {
+    display: none;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 7px 14px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  body.authed #logoutBtn { display: block; }
+
+  #tabs {
+    display: none;
+    gap: 8px;
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 0 16px 12px 16px;
+    overflow-x: auto;
+  }
+  body.authed #tabs { display: flex; }
+  #tabs .nav-btn {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 999px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  #tabs .nav-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  #tabs .badge {
+    font-size: 11px;
+    font-weight: 700;
+    background: var(--panel-2);
+    color: var(--muted);
+    border-radius: 999px;
+    padding: 1px 7px;
+    min-width: 20px;
+    text-align: center;
+  }
+  #tabs .nav-btn.active .badge {
+    background: rgba(255, 255, 255, 0.22);
+    color: #fff;
+  }
+  #tabs .badge.zero { opacity: 0.55; }
+
+  main {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 24px 16px 60px 16px;
+  }
+
+  #loginGate.hide { display: none; }
+  #app { display: none; }
+  #app.show { display: block; }
+
+  .page-head, .section-head { margin-bottom: 22px; }
+  .page-head h1, .section-head h1 {
+    font-size: 21px;
+    font-weight: 700;
+    margin: 0 0 6px 0;
+  }
+  .page-head p, .section-head p {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.5;
+    margin: 0;
+  }
+  .section-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .head-actions { display: flex; gap: 8px; flex: 0 0 auto; }
+
+  .section { display: none; }
+  .section.active { display: block; }
+
+  .field { margin-bottom: 18px; }
+  .field label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  input[type="text"], input[type="url"], input[type="search"], textarea {
+    width: 100%;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 14px;
+    color: var(--text);
+    font-size: 15px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.15s ease;
+  }
+  input[type="text"]:focus, input[type="url"]:focus, input[type="search"]:focus, textarea:focus {
+    border-color: var(--accent);
+  }
+  input::placeholder, textarea::placeholder { color: var(--muted); }
+  textarea {
+    resize: vertical;
+    min-height: 160px;
+    line-height: 1.5;
+  }
+
+  .btn {
+    border: 1px solid var(--border);
+    background: var(--panel-2);
+    color: var(--text);
+    padding: 10px 16px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn.danger { background: var(--danger-dim); border-color: var(--danger); color: #ffb3b3; }
+  .btn:disabled { background: #3a3f4a; border-color: #3a3f4a; color: var(--muted); cursor: default; }
+
+  #loginBtn {
+    width: 100%;
+    padding: 14px;
+    border-radius: 14px;
+    border: none;
+    background: var(--accent);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    margin-top: 6px;
+  }
+  #loginBtn:disabled { background: #3a3f4a; color: var(--muted); cursor: default; }
+
+  .banner {
+    display: none;
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 13px;
+    line-height: 1.5;
+    margin-bottom: 18px;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .banner.show { display: block; }
+  .banner.error { background: var(--danger-dim); border: 1px solid var(--danger); color: #ffb3b3; }
+  .banner.success { background: var(--success-dim); border: 1px solid var(--success); color: #b6f0c9; }
+  .banner.progress { background: var(--panel); border: 1px solid var(--border); color: var(--muted); }
+
+  .toolbar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .toolbar input { flex: 1; min-width: 0; }
+
+  .empty-state {
+    border: 1px dashed var(--border);
+    border-radius: 14px;
+    padding: 36px 20px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .loading-row {
+    color: var(--muted);
+    font-size: 13px;
+    padding: 16px 0;
+  }
+
+  .queue-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .queue-card h3 {
+    font-size: 15px;
+    font-weight: 700;
+    margin: 0 0 4px 0;
+  }
+  .queue-card .meta {
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .queue-card .meta a { color: var(--accent); text-decoration: none; }
+  .queue-card .body {
+    font-size: 14px;
+    line-height: 1.55;
+    margin: 12px 0;
+    max-height: 6.2em;
+    overflow: hidden;
+  }
+  .queue-card .imgs {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+  .queue-card .imgs img {
+    width: 56px;
+    height: 56px;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+  .queue-card .actions { display: flex; gap: 8px; }
+
+  .list-wrap {
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    background: var(--panel);
+  }
+  .u-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 12px;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+  .u-row:last-child { border-bottom: none; }
+  .u-row .thumb {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    object-fit: cover;
+    border: 1px solid var(--border);
+    flex: 0 0 auto;
+    background: var(--panel-2);
+  }
+  .u-row .title {
+    font-weight: 600;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .u-row .pid { color: var(--muted); font-size: 12px; flex: 0 0 auto; }
+  .u-row .rowbtn {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 10px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .editor {
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    margin-top: 16px;
+  }
+  .editor .imgs {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    gap: 10px;
+    margin-top: 4px;
+  }
+  .editor .img-tile {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background: var(--panel);
+  }
+  .editor .img-tile img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .editor .img-tile button {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: rgba(13, 15, 19, 0.85);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text);
+    font-size: 13px;
+    line-height: 1;
+    padding: 0;
+  }
+  .editor .add-img {
+    aspect-ratio: 1;
+    border-radius: 10px;
+    border: 1px dashed var(--border);
+    background: var(--panel-2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    font-size: 22px;
+    cursor: pointer;
+  }
+  .editor .img-url-row { display: flex; gap: 8px; margin-top: 10px; }
+  .editor .img-url-row input { flex: 1; min-width: 0; }
+  .editor .img-hint { color: var(--muted); font-size: 12px; margin-top: 6px; }
+  .editor-actions { display: flex; gap: 8px; margin-top: 4px; }
+
+  .ai-result {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px 14px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    margin-bottom: 8px;
+    font-size: 14px;
+  }
+  .ai-result .name { font-weight: 600; }
+  .ai-result .len {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 2px;
+    word-break: break-word;
+  }
+
+  .chat-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .chat-card.errored { border-color: var(--danger); }
+  .chat-card .meta {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 8px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .chat-card .tool-tag {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 1px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+  }
+  .chat-card .err-tag {
+    background: var(--danger-dim);
+    border: 1px solid var(--danger);
+    border-radius: 999px;
+    padding: 1px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #ffb3b3;
+  }
+  .chat-card .q {
+    font-size: 14px;
+    font-weight: 700;
+    margin: 0 0 8px 0;
+    line-height: 1.4;
+  }
+  .chat-card .q::before {
+    content: "Q · ";
+    color: var(--accent);
+    font-weight: 700;
+  }
+  .chat-card .a {
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--text);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .chat-card .a-empty { color: var(--muted); font-style: italic; }
+  .chat-card details {
+    margin-top: 10px;
+    border-top: 1px solid var(--border);
+    padding-top: 10px;
+  }
+  .chat-card summary {
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+  }
+  .chat-card .src-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 5px 0;
+    font-size: 12.5px;
+  }
+  .chat-card .src-score {
+    color: var(--success);
+    font-variant-numeric: tabular-nums;
+    flex: none;
+    min-width: 40px;
+  }
+  .chat-card .src-title { flex: 1; word-break: break-word; }
+  .chat-card .src-title a { color: var(--accent); text-decoration: none; }
+  .chat-card .src-title a:hover { text-decoration: underline; }
+  .chat-card .vid-title { padding: 3px 0; font-size: 12.5px; }
+  .chat-card .vid-title a { color: var(--accent); text-decoration: none; }
+  .chat-card .tool-block { margin-top: 8px; }
+  .chat-card .tool-block-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    margin-bottom: 2px;
+  }
+  .chat-card .tool-empty { color: var(--muted); font-size: 12.5px; padding: 3px 0; }
+
+  .pager {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 16px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .pager button { min-width: 84px; }
+  .pager button:disabled { opacity: 0.4; cursor: default; }
+
+  @media (max-width: 480px) {
+    .u-row .pid { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header id="topbar">
+  <div id="navbar">
+    <img class="navlogo" src="icon.png" alt="" onerror="this.style.display='none'">
+    <div class="navtitle"><strong>CraftersGPT</strong></div>
+    <div class="navsub">Admin</div>
+    <div class="spacer"></div>
+    <button type="button" id="logoutBtn">Log out</button>
+  </div>
+  <nav id="tabs">
+    <button type="button" class="nav-btn active" data-section="queue">Review queue <span class="badge zero" id="badgeQueue">0</span></button>
+    <button type="button" class="nav-btn" data-section="unbound">Unbound pages <span class="badge zero" id="badgeUnbound">0</span></button>
+    <button type="button" class="nav-btn" data-section="aidata">AI data</button>
+    <button type="button" class="nav-btn" data-section="chats">Chat logs</button>
+  </nav>
+</header>
+
+<main>
+  <div id="loginGate">
+    <div class="page-head">
+      <h1>Admin access</h1>
+      <p>Enter the admin token to manage submissions, pages, and AI data for CraftersGPT.</p>
+    </div>
+    <form id="loginForm">
+      <div class="field">
+        <label for="tokenInput">Admin token</label>
+        <input type="text" id="tokenInput" class="mono" placeholder="x-admin-token" autocomplete="off" spellcheck="false" required>
+      </div>
+      <div class="banner error" id="loginError"></div>
+      <button type="submit" id="loginBtn">Enter</button>
+    </form>
+  </div>
+
+  <div id="app">
+    <section class="section active" id="section-queue">
+      <div class="section-head">
+        <div>
+          <h1>Review queue</h1>
+          <p>Community submissions waiting for a decision. Accepting moves a page straight into Unbound pages.</p>
+        </div>
+        <div class="head-actions">
+          <button type="button" class="btn" id="refreshQueueBtn">Refresh</button>
+        </div>
+      </div>
+      <div class="banner" id="queueBanner"></div>
+      <div id="queueList"><div class="loading-row">Loading queue...</div></div>
+    </section>
+
+    <section class="section" id="section-unbound">
+      <div class="section-head">
+        <div>
+          <h1>Unbound pages</h1>
+          <p>Pages served to the AI outside the wiki. Add, edit, or remove entries directly.</p>
+        </div>
+        <div class="head-actions">
+          <button type="button" class="btn primary" id="newUnboundBtn">New page</button>
+        </div>
+      </div>
+      <div class="banner" id="unboundBanner"></div>
+      <div class="toolbar">
+        <input type="search" id="unboundSearch" placeholder="Filter by title..." autocomplete="off">
+      </div>
+      <div class="list-wrap" id="unboundList"><div class="loading-row">Loading pages...</div></div>
+      <div class="editor" id="unboundEditor" style="display:none;"></div>
+    </section>
+
+    <section class="section" id="section-aidata">
+      <div class="section-head">
+        <div>
+          <h1>AI data</h1>
+          <p>Wiki-backed pages the assistant searches. Pull the latest wikitext for a title straight from the wiki.</p>
+        </div>
+      </div>
+      <div class="banner" id="aiBanner"></div>
+      <div class="toolbar">
+        <input type="text" id="aiSearchInput" placeholder="Search ai-data.json by title..." autocomplete="off">
+        <button type="button" class="btn" id="aiSearchBtn">Search</button>
+      </div>
+      <div id="aiResults"><div class="empty-state">Search for a title to see matching pages.</div></div>
+    </section>
+
+    <section class="section" id="section-chats">
+      <div class="section-head">
+        <div>
+          <h1>Chat logs</h1>
+          <p>Every question asked and the answer given, newest first, with the wiki pages selected for that answer.</p>
+        </div>
+        <div class="head-actions">
+          <button type="button" class="btn danger" id="clearChatsBtn">Clear all</button>
+        </div>
+      </div>
+      <div class="banner" id="chatsBanner"></div>
+      <div class="toolbar">
+        <input type="search" id="chatsSearch" placeholder="Search questions and answers..." autocomplete="off">
+      </div>
+      <div id="chatsList"><div class="loading-row">Loading chat logs...</div></div>
+      <div class="pager" id="chatsPager" style="display:none;">
+        <button type="button" class="btn" id="chatsPrevBtn">&larr; Newer</button>
+        <span id="chatsPageInfo"></span>
+        <button type="button" class="btn" id="chatsNextBtn">Older &rarr;</button>
+      </div>
+    </section>
+  </div>
+</main>
+
+<script>
+(function () {
+  "use strict";
+
+  var API_BASE = "https://code-mon-space.shop/api/admin";
+  var STORAGE_KEY = "cmc_admin_token";
+
+  var loginGate = document.getElementById("loginGate");
+  var loginForm = document.getElementById("loginForm");
+  var tokenInput = document.getElementById("tokenInput");
+  var loginBtn = document.getElementById("loginBtn");
+  var loginError = document.getElementById("loginError");
+  var appEl = document.getElementById("app");
+
+  var adminToken = null;
+
+  function api(path, opts) {
+    opts = opts || {};
+    var headers = Object.assign({ "x-admin-token": adminToken }, opts.headers || {});
+    return fetch(API_BASE + path, Object.assign({ mode: "cors", credentials: "omit" }, opts, { headers: headers }))
+      .then(function (res) {
+        return res.json().catch(function () { return {}; }).then(function (data) {
+          if (!res.ok) {
+            var err = new Error((data && data.error) || ("Request failed (" + res.status + ")"));
+            err.status = res.status;
+            throw err;
+          }
+          return data;
+        });
+      })
+      .catch(function (err) {
+        if (err instanceof TypeError) {
+          var corsErr = new Error(
+            "Could not reach the API at " + API_BASE + ". This usually means the server " +
+            "isn't sending CORS headers (Access-Control-Allow-Origin) for this origin, or " +
+            "there's a network/DNS issue. Check the browser DevTools Network tab for the " +
+            "failed request to see the exact reason."
+          );
+          corsErr.cause = err;
+          throw corsErr;
+        }
+        throw err;
+      });
+  }
+
+  function showLoginError(msg) {
+    loginError.textContent = msg;
+    loginError.classList.add("show");
+  }
+  function clearLoginError() {
+    loginError.classList.remove("show");
+    loginError.textContent = "";
+  }
+
+  function tryLogin(token) {
+    adminToken = token;
+    loginBtn.disabled = true;
+    loginBtn.textContent = "Checking...";
+    clearLoginError();
+    return api("/login", { method: "POST" })
+      .then(function () {
+        localStorage.setItem(STORAGE_KEY, token);
+        loginGate.classList.add("hide");
+        appEl.classList.add("show");
+        document.body.classList.add("authed");
+        initApp();
+      })
+      .catch(function (err) {
+        adminToken = null;
+        showLoginError(err.status === 401 ? "That token was rejected. Check it and try again." : (err.message || "Could not reach the admin API."));
+      })
+      .finally(function () {
+        loginBtn.disabled = false;
+        loginBtn.textContent = "Enter";
+      });
+  }
+
+  loginForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var t = tokenInput.value.trim();
+    if (!t) return;
+    tryLogin(t);
+  });
+
+  function logout() {
+    localStorage.removeItem(STORAGE_KEY);
+    adminToken = null;
+    document.body.classList.remove("authed");
+    appEl.classList.remove("show");
+    loginGate.classList.remove("hide");
+    tokenInput.value = "";
+    tokenInput.focus();
+  }
+  document.getElementById("logoutBtn").addEventListener("click", logout);
+
+  var saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    tokenInput.value = saved;
+    tryLogin(saved);
+  }
+
+  var navButtons = Array.prototype.slice.call(document.querySelectorAll(".nav-btn"));
+  var sections = {
+    queue: document.getElementById("section-queue"),
+    unbound: document.getElementById("section-unbound"),
+    aidata: document.getElementById("section-aidata"),
+    chats: document.getElementById("section-chats"),
+  };
+  navButtons.forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      navButtons.forEach(function (b) { b.classList.remove("active"); });
+      btn.classList.add("active");
+      Object.keys(sections).forEach(function (k) { sections[k].classList.remove("active"); });
+      sections[btn.dataset.section].classList.add("active");
+    });
+  });
+
+  function setBadge(id, n) {
+    var el = document.getElementById(id);
+    el.textContent = n;
+    el.classList.toggle("zero", n === 0);
+  }
+
+  function showBanner(el, kind, msg) {
+    el.className = "banner show " + kind;
+    el.textContent = msg;
+  }
+  function clearBanner(el) {
+    el.className = "banner";
+    el.textContent = "";
+  }
+
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  var appInitialized = false;
+  function initApp() {
+    if (appInitialized) return;
+    appInitialized = true;
+    loadQueue();
+    loadUnbound();
+  }
+
+  var queueList = document.getElementById("queueList");
+  var queueBanner = document.getElementById("queueBanner");
+  var queueData = [];
+
+  function loadQueue() {
+    queueList.innerHTML = '<div class="loading-row">Loading queue...</div>';
+    api("/queue")
+      .then(function (data) {
+        queueData = data.pages || [];
+        setBadge("badgeQueue", queueData.length);
+        renderQueue();
+      })
+      .catch(function (err) {
+        queueList.innerHTML = "";
+        showBanner(queueBanner, "error", err.message || "Could not load queue.");
+      });
+  }
+
+  function renderQueue() {
+    if (queueData.length === 0) {
+      queueList.innerHTML = '<div class="empty-state">Nothing waiting for review. New submissions will show up here.</div>';
+      return;
+    }
+    queueList.innerHTML = "";
+    queueData.forEach(function (item) {
+      var card = document.createElement("div");
+      card.className = "queue-card";
+
+      var imgsHtml = (item.img || []).slice(0, 6).map(function (u) {
+        return '<img src="' + esc(u) + '" alt="" loading="lazy">';
+      }).join("");
+
+      card.innerHTML =
+        '<div class="qtop">' +
+          '<div>' +
+            "<h3>" + esc(item.title) + "</h3>" +
+            '<div class="meta">' +
+              (item.submittedAt ? new Date(item.submittedAt).toLocaleString() : "") +
+              (item.url ? ' · <a href="' + esc(item.url) + '" target="_blank" rel="noopener">source</a>' : "") +
+            "</div>" +
+          "</div>" +
+        "</div>" +
+        '<div class="body">' + esc(item.mainContent) + "</div>" +
+        (imgsHtml ? '<div class="imgs">' + imgsHtml + "</div>" : "") +
+        '<div class="actions">' +
+          '<button type="button" class="btn primary" data-act="accept">Accept</button>' +
+          '<button type="button" class="btn danger" data-act="reject">Reject</button>' +
+        "</div>";
+
+      card.querySelector('[data-act="accept"]').addEventListener("click", function (e) {
+        decideQueueItem(item.submissionId, "accept", e.target, card);
+      });
+      card.querySelector('[data-act="reject"]').addEventListener("click", function (e) {
+        decideQueueItem(item.submissionId, "reject", e.target, card);
+      });
+
+      queueList.appendChild(card);
+    });
+  }
+
+  function decideQueueItem(id, action, btnEl, cardEl) {
+    var buttons = cardEl.querySelectorAll("button");
+    buttons.forEach(function (b) { b.disabled = true; });
+    clearBanner(queueBanner);
+
+    api("/queue/" + encodeURIComponent(id) + "/" + action, { method: "POST" })
+      .then(function () {
+        queueData = queueData.filter(function (p) { return p.submissionId !== id; });
+        setBadge("badgeQueue", queueData.length);
+        cardEl.remove();
+        if (queueData.length === 0) renderQueue();
+        showBanner(queueBanner, "success", action === "accept" ? "Added to Unbound pages." : "Submission rejected.");
+        if (action === "accept") loadUnbound();
+      })
+      .catch(function (err) {
+        buttons.forEach(function (b) { b.disabled = false; });
+        showBanner(queueBanner, "error", err.message || "Could not " + action + " submission.");
+      });
+  }
+
+  document.getElementById("refreshQueueBtn").addEventListener("click", loadQueue);
+
+  var unboundList = document.getElementById("unboundList");
+  var unboundBanner = document.getElementById("unboundBanner");
+  var unboundEditor = document.getElementById("unboundEditor");
+  var unboundSearch = document.getElementById("unboundSearch");
+  var unboundData = [];
+  var editingPageId = null;
+
+  function loadUnbound() {
+    unboundList.innerHTML = '<div class="loading-row">Loading pages...</div>';
+    api("/unbound")
+      .then(function (data) {
+        unboundData = data.pages || [];
+        setBadge("badgeUnbound", unboundData.length);
+        renderUnboundList();
+      })
+      .catch(function (err) {
+        unboundList.innerHTML = "";
+        showBanner(unboundBanner, "error", err.message || "Could not load unbound.json.");
+      });
+  }
+
+  function renderUnboundList() {
+    var q = unboundSearch.value.trim().toLowerCase();
+    var rows = unboundData.filter(function (p) {
+      return !q || (p.title || "").toLowerCase().includes(q);
+    });
+
+    if (rows.length === 0) {
+      unboundList.innerHTML = '<div class="empty-state">' + (q ? "No pages match \u201c" + esc(q) + "\u201d." : "No unbound pages yet.") + "</div>";
+      return;
+    }
+
+    unboundList.innerHTML = "";
+    rows.forEach(function (p) {
+      var row = document.createElement("div");
+      row.className = "u-row";
+      var thumb = (p.img && p.img[0]) ? p.img[0] : "";
+      row.innerHTML =
+        (thumb ? '<img class="thumb" src="' + esc(thumb) + '" alt="" loading="lazy">' : '<div class="thumb"></div>') +
+        '<div class="title">' + esc(p.title) + "</div>" +
+        '<div class="pid mono">#' + esc(p.pageId) + "</div>" +
+        '<button type="button" class="rowbtn" data-edit>Edit</button>' +
+        '<button type="button" class="rowbtn" data-del>Delete</button>';
+
+      row.querySelector("[data-edit]").addEventListener("click", function () { openUnboundEditor(p.pageId); });
+      row.querySelector("[data-del]").addEventListener("click", function () { deleteUnboundPage(p.pageId, p.title); });
+
+      unboundList.appendChild(row);
+    });
+  }
+  unboundSearch.addEventListener("input", renderUnboundList);
+
+  function deleteUnboundPage(pageId, title) {
+    if (!confirm('Delete "' + title + '"? This cannot be undone.')) return;
+    api("/unbound/" + encodeURIComponent(pageId), { method: "DELETE" })
+      .then(function () {
+        showBanner(unboundBanner, "success", '"' + title + '" deleted.');
+        if (editingPageId === pageId) closeUnboundEditor();
+        loadUnbound();
+      })
+      .catch(function (err) {
+        showBanner(unboundBanner, "error", err.message || "Could not delete page.");
+      });
+  }
+
+  document.getElementById("newUnboundBtn").addEventListener("click", function () { openUnboundEditor("new"); });
+
+  function closeUnboundEditor() {
+    editingPageId = null;
+    unboundEditor.style.display = "none";
+    unboundEditor.innerHTML = "";
+  }
+
+  function openUnboundEditor(pageId) {
+    editingPageId = pageId;
+    unboundEditor.style.display = "block";
+    unboundEditor.innerHTML = '<div class="loading-row">Loading...</div>';
+
+    var ready = pageId === "new"
+      ? Promise.resolve({ page: { pageId: null, title: "", url: "", mainContent: "", img: [] } })
+      : api("/unbound/" + encodeURIComponent(pageId));
+
+    ready.then(function (data) {
+      renderUnboundEditor(data.page);
+      unboundEditor.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }).catch(function (err) {
+      unboundEditor.innerHTML = '<div class="empty-state">' + esc(err.message || "Could not load page.") + "</div>";
+    });
+  }
+
+  function renderUnboundEditor(page) {
+    var isNew = editingPageId === "new";
+    var imgs = Array.isArray(page.img) ? page.img.slice() : [];
+
+    unboundEditor.innerHTML =
+      "<h3 style=\"margin:0 0 14px 0;font-size:15px;\">" + (isNew ? "New unbound page" : "Edit page") + "</h3>" +
+      '<div class="field"><label>Title</label><input type="text" id="edTitle" maxlength="120"></div>' +
+      '<div class="field"><label>Source URL (optional)</label><input type="url" id="edUrl"></div>' +
+      '<div class="field"><label>Main content</label><textarea id="edContent"></textarea></div>' +
+      '<div class="field"><label>Images (up to 10)</label><div class="imgs" id="edImgs"></div>' +
+        '<div class="img-url-row"><input type="url" id="edImgUrl" placeholder="https://i.imgur.com/example.png" autocomplete="off">' +
+        '<button type="button" class="btn" id="edImgAdd">Add</button></div>' +
+        '<div class="img-hint">Paste a direct link to an image (Imgur, Discord CDN, etc.), then tap Add.</div></div>' +
+      '<div class="editor-actions">' +
+        '<button type="button" class="btn primary" id="edSave">' + (isNew ? "Create page" : "Save changes") + "</button>" +
+        '<button type="button" class="btn" id="edCancel">Cancel</button>' +
+      "</div>";
+
+    document.getElementById("edTitle").value = page.title || "";
+    document.getElementById("edUrl").value = page.url || "";
+    document.getElementById("edContent").value = page.mainContent || "";
+
+    var edImgs = document.getElementById("edImgs");
+    var edImgUrl = document.getElementById("edImgUrl");
+    var MAX_IMAGES = 10;
+    var IMG_EXT_RE = /\.(png|jpe?g|webp|gif|avif)(\?.*)?(#.*)?$/i;
+
+    function renderImgTiles() {
+      edImgs.innerHTML = "";
+      imgs.forEach(function (url) {
+        var tile = document.createElement("div");
+        tile.className = "img-tile";
+        tile.innerHTML = '<img src="' + esc(url) + '" alt=""><button type="button">\u00d7</button>';
+        tile.querySelector("button").addEventListener("click", function () {
+          imgs = imgs.filter(function (u) { return u !== url; });
+          renderImgTiles();
+        });
+        edImgs.appendChild(tile);
+      });
+    }
+    renderImgTiles();
+
+    function addImageUrl() {
+      var raw = edImgUrl.value.trim();
+      if (!raw) return;
+      var u;
+      try { u = new URL(raw); } catch (e) {
+        showBanner(unboundBanner, "error", "That is not a valid URL.");
+        return;
+      }
+      if (u.protocol !== "https:" && u.protocol !== "http:") {
+        showBanner(unboundBanner, "error", "Image URL must start with http(s)://");
+        return;
+      }
+      if (/\.[a-z0-9]{2,5}(\?.*)?(#.*)?$/i.test(u.pathname + u.search) && !IMG_EXT_RE.test(raw)) {
+        showBanner(unboundBanner, "error", "Link must go directly to an image (png, jpg, webp, gif, avif).");
+        return;
+      }
+      if (imgs.indexOf(raw) !== -1) {
+        showBanner(unboundBanner, "error", "That image is already added.");
+        return;
+      }
+      if (imgs.length >= MAX_IMAGES) {
+        showBanner(unboundBanner, "error", "Maximum " + MAX_IMAGES + " images.");
+        return;
+      }
+      imgs.push(raw);
+      edImgUrl.value = "";
+      renderImgTiles();
+    }
+
+    document.getElementById("edImgAdd").addEventListener("click", addImageUrl);
+    edImgUrl.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") { e.preventDefault(); addImageUrl(); }
+    });
+
+    document.getElementById("edCancel").addEventListener("click", closeUnboundEditor);
+
+    document.getElementById("edSave").addEventListener("click", function () {
+      if (edImgUrl.value.trim()) addImageUrl();
+      var title = document.getElementById("edTitle").value.trim();
+      var url = document.getElementById("edUrl").value.trim();
+      var mainContent = document.getElementById("edContent").value;
+      if (!title) { showBanner(unboundBanner, "error", "Title is required."); return; }
+      if (!mainContent.trim()) { showBanner(unboundBanner, "error", "Main content is required."); return; }
+
+      var saveBtn = document.getElementById("edSave");
+      saveBtn.disabled = true;
+      saveBtn.textContent = "Saving...";
+
+      var req = isNew
+        ? api("/unbound", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ title: title, url: url, mainContent: mainContent, img: imgs }),
+          })
+        : api("/unbound/" + encodeURIComponent(page.pageId), {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ title: title, url: url, mainContent: mainContent, img: imgs }),
+          });
+
+      req.then(function () {
+        showBanner(unboundBanner, "success", isNew ? "Page created." : "Changes saved.");
+        closeUnboundEditor();
+        loadUnbound();
+      }).catch(function (err) {
+        showBanner(unboundBanner, "error", err.message || "Could not save page.");
+      }).finally(function () {
+        saveBtn.disabled = false;
+        saveBtn.textContent = isNew ? "Create page" : "Save changes";
+      });
+    });
+  }
+
+  var aiSearchInput = document.getElementById("aiSearchInput");
+  var aiSearchBtn = document.getElementById("aiSearchBtn");
+  var aiResults = document.getElementById("aiResults");
+  var aiBanner = document.getElementById("aiBanner");
+
+  function runAiSearch() {
+    var q = aiSearchInput.value.trim();
+    aiResults.innerHTML = '<div class="loading-row">Searching...</div>';
+    api("/ai-data/search?q=" + encodeURIComponent(q))
+      .then(function (data) {
+        renderAiResults(data.pages || []);
+      })
+      .catch(function (err) {
+        aiResults.innerHTML = "";
+        showBanner(aiBanner, "error", err.message || "Could not search ai-data.json.");
+      });
+  }
+  aiSearchBtn.addEventListener("click", runAiSearch);
+  aiSearchInput.addEventListener("keydown", function (e) { if (e.key === "Enter") runAiSearch(); });
+
+  function renderAiResults(pages) {
+    if (pages.length === 0) {
+      aiResults.innerHTML = '<div class="empty-state">No matching pages in ai-data.json.</div>';
+      return;
+    }
+    aiResults.innerHTML = "";
+    pages.forEach(function (p) {
+      var row = document.createElement("div");
+      row.className = "ai-result";
+      row.innerHTML =
+        "<div>" +
+          '<div class="name">' + esc(p.title) + "</div>" +
+          '<div class="len">#' + esc(p.pageId) + (p.url ? " · " + esc(p.url) : "") + "</div>" +
+        "</div>" +
+        '<button type="button" class="btn primary" data-sync>Sync from wiki</button>';
+
+      row.querySelector("[data-sync]").addEventListener("click", function (e) {
+        var btn = e.target;
+        btn.disabled = true;
+        btn.textContent = "Syncing...";
+        clearBanner(aiBanner);
+        api("/ai-data/update", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title: p.title }),
+        }).then(function (data) {
+          showBanner(aiBanner, "success", '"' + data.title + '" updated (' + data.contentLength.toLocaleString() + ' chars).');
+        }).catch(function (err) {
+          showBanner(aiBanner, "error", err.message || "Could not sync from wiki.");
+        }).finally(function () {
+          btn.disabled = false;
+          btn.textContent = "Sync from wiki";
+        });
+      });
+
+      aiResults.appendChild(row);
+    });
+  }
+
+  var aiLoadedOnce = false;
+  document.querySelector('[data-section="aidata"]').addEventListener("click", function () {
+    if (!aiLoadedOnce) { aiLoadedOnce = true; runAiSearch(); }
+  });
+
+  var chatsList = document.getElementById("chatsList");
+  var chatsBanner = document.getElementById("chatsBanner");
+  var chatsSearch = document.getElementById("chatsSearch");
+  var chatsPager = document.getElementById("chatsPager");
+  var chatsPageInfo = document.getElementById("chatsPageInfo");
+  var chatsPrevBtn = document.getElementById("chatsPrevBtn");
+  var chatsNextBtn = document.getElementById("chatsNextBtn");
+  var chatsPage = 1;
+  var chatsTotalPages = 1;
+  var chatsSearchTimer = null;
+
+  function loadChats() {
+    chatsList.innerHTML = '<div class="loading-row">Loading chat logs...</div>';
+    chatsPager.style.display = "none";
+    var q = chatsSearch.value.trim();
+    var qs = "?page=" + chatsPage + "&pageSize=25" + (q ? "&q=" + encodeURIComponent(q) : "");
+    api("/chats" + qs)
+      .then(function (data) {
+        chatsTotalPages = data.totalPages || 1;
+        chatsPage = data.page || 1;
+        renderChats(data.chats || [], data.total || 0);
+      })
+      .catch(function (err) {
+        chatsList.innerHTML = "";
+        showBanner(chatsBanner, "error", err.message || "Could not load chat logs.");
+      });
+  }
+
+  function renderChats(chats, total) {
+    if (chats.length === 0) {
+      chatsList.innerHTML = '<div class="empty-state">' +
+        (chatsSearch.value.trim() ? "No chats match your search." : "No chats logged yet.") +
+        "</div>";
+      chatsPager.style.display = "none";
+      return;
+    }
+
+    chatsList.innerHTML = "";
+    chats.forEach(function (c) {
+      var card = document.createElement("div");
+      card.className = "chat-card" + (c.error ? " errored" : "");
+
+      var when = c.timestamp ? new Date(c.timestamp).toLocaleString() : "";
+      var tagsHtml =
+        (c.toolUsed ? '<span class="tool-tag">' + esc(c.toolUsed) + "</span>" : "") +
+        (c.error ? '<span class="err-tag">error</span>' : "");
+
+      var sources = Array.isArray(c.sources) ? c.sources : [];
+      var videos = Array.isArray(c.videos) ? c.videos : [];
+      var toolData = (c.toolData && typeof c.toolData === "object") ? c.toolData : {};
+      // videos/sources already get their own dedicated rendering below, so
+      // don't repeat them in the generic tool-data dump.
+      var extraToolKeys = Object.keys(toolData).filter(function (k) { return k !== "videos"; });
+
+      var srcHtml = sources.length
+        ? sources.map(function (s) {
+            var t = esc(s.title || "(untitled)");
+            var score = (typeof s.score === "number") ? s.score.toFixed(2) : "?";
+            var titleHtml = s.url
+              ? '<a href="' + esc(s.url) + '" target="_blank" rel="noopener">' + t + "</a>"
+              : t;
+            return '<div class="src-row"><span class="src-score">' + score + '</span><span class="src-title">' + titleHtml + "</span></div>";
+          }).join("")
+        : '<div class="src-row"><span class="src-title" style="color:var(--muted)">No pages were selected.</span></div>';
+
+      var vidHtml = videos.length
+        ? videos.map(function (v) {
+            return '<div class="vid-title">&#9654; <a href="' + esc(v.url || "#") + '" target="_blank" rel="noopener">' + esc(v.title || v.url || "video") + "</a></div>";
+          }).join("")
+        : "";
+
+      // Renders ANY future tool's data generically, so adding a new tool
+      // later doesn't require touching this admin panel: arrays of objects
+      // become a small key:value row list, arrays of scalars become a
+      // comma list, plain objects become key:value pairs, everything else
+      // is stringified. Unknown shapes never crash the render.
+      var extraToolHtml = extraToolKeys.map(function (key) {
+        var value = toolData[key];
+        var inner;
+        if (Array.isArray(value)) {
+          if (value.length === 0) {
+            inner = '<div class="tool-empty">No results.</div>';
+          } else if (typeof value[0] === "object" && value[0] !== null) {
+            inner = value.slice(0, 20).map(function (item) {
+              var parts = Object.keys(item)
+                .filter(function (k) { return typeof item[k] !== "object"; })
+                .map(function (k) { return "<strong>" + esc(k) + ":</strong> " + esc(item[k]); });
+              return '<div class="src-row"><span class="src-title">' + parts.join(" &middot; ") + "</span></div>";
+            }).join("");
+          } else {
+            inner = '<div class="src-row"><span class="src-title">' + esc(value.join(", ")) + "</span></div>";
+          }
+        } else if (value && typeof value === "object") {
+          var pairs = Object.keys(value)
+            .filter(function (k) { return typeof value[k] !== "object"; })
+            .map(function (k) { return "<strong>" + esc(k) + ":</strong> " + esc(value[k]); });
+          inner = '<div class="src-row"><span class="src-title">' + pairs.join(" &middot; ") + "</span></div>";
+        } else {
+          inner = '<div class="src-row"><span class="src-title">' + esc(value) + "</span></div>";
+        }
+        return '<div class="tool-block"><div class="tool-block-label">' + esc(key) + "</div>" + inner + "</div>";
+      }).join("");
+
+      card.innerHTML =
+        '<div class="meta">' + esc(when) + tagsHtml + "</div>" +
+        '<div class="q">' + esc(c.question || "") + "</div>" +
+        (c.error
+          ? '<div class="a a-empty">' + esc(c.error) + "</div>"
+          : '<div class="a">' + esc(c.answer || "") + "</div>") +
+        "<details>" +
+          "<summary>Pages selected (" + sources.length + ")" + (videos.length ? " &middot; Videos (" + videos.length + ")" : "") + (extraToolKeys.length ? " &middot; Tool data (" + extraToolKeys.join(", ") + ")" : "") + "</summary>" +
+          srcHtml + vidHtml + extraToolHtml +
+        "</details>";
+
+      chatsList.appendChild(card);
+    });
+
+    chatsPager.style.display = "flex";
+    chatsPageInfo.textContent = "Page " + chatsPage + " of " + chatsTotalPages + " (" + total + " total)";
+    chatsPrevBtn.disabled = chatsPage <= 1;
+    chatsNextBtn.disabled = chatsPage >= chatsTotalPages;
+  }
+
+  chatsSearch.addEventListener("input", function () {
+    clearTimeout(chatsSearchTimer);
+    chatsSearchTimer = setTimeout(function () {
+      chatsPage = 1;
+      loadChats();
+    }, 300);
+  });
+
+  chatsPrevBtn.addEventListener("click", function () {
+    if (chatsPage > 1) { chatsPage -= 1; loadChats(); }
+  });
+  chatsNextBtn.addEventListener("click", function () {
+    if (chatsPage < chatsTotalPages) { chatsPage += 1; loadChats(); }
+  });
+
+  document.getElementById("clearChatsBtn").addEventListener("click", function () {
+    if (!confirm("Delete all logged chats? This cannot be undone.")) return;
+    api("/chats", { method: "DELETE" })
+      .then(function () {
+        chatsPage = 1;
+        showBanner(chatsBanner, "success", "Chat logs cleared.");
+        loadChats();
+      })
+      .catch(function (err) {
+        showBanner(chatsBanner, "error", err.message || "Could not clear chat logs.");
+      });
+  });
+
+  var chatsLoadedOnce = false;
+  document.querySelector('[data-section="chats"]').addEventListener("click", function () {
+    if (!chatsLoadedOnce) { chatsLoadedOnce = true; loadChats(); }
+  });
+
+})();
+</script>
+
+</body>
+</html>
