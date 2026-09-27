@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proxy - admin-7.html</title>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #0b0c0f;
+  }
+  #status {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 10px 16px;
+    background: #1a1b1e;
+    color: #eee;
+    font-size: 13px;
+    z-index: 1000;
+    border-bottom: 1px solid #2a2b2e;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  #status.hidden { display: none; }
+  #status .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #f5a623;
+    flex-shrink: 0;
+  }
+  #status.error .dot { background: #e5484d; }
+  #status.ok .dot { background: #30a46c; }
+  #errorBox {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: #0b0c0f;
+    color: #eee;
+    padding: 24px;
+    box-sizing: border-box;
+    overflow: auto;
+  }
+  #errorBox.show { display: block; }
+  #errorBox h1 { font-size: 18px; margin-top: 0; color: #e5484d; }
+  #errorBox pre {
+    background: #17181b;
+    border: 1px solid #2a2b2e;
+    padding: 12px;
+    border-radius: 6px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-size: 13px;
+  }
+  #errorBox button {
+    background: #2a2b2e;
+    color: #eee;
+    border: 1px solid #3a3b3e;
+    padding: 8px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  #errorBox button:hover { background: #3a3b3e; }
+  #frame {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: #fff;
+  }
+  #frame.with-status { top: 37px; height: calc(100% - 37px); }
+</style>
+</head>
+<body>
+
+  <div id="status">
+    <span class="dot"></span>
+    <span id="statusText">Loading admin-7.html…</span>
+  </div>
+
+  <div id="errorBox">
+    <h1>Couldn't load admin-7.html</h1>
+    <p id="errorMsg"></p>
+    <pre id="errorDetail"></pre>
+    <button id="retryBtn" type="button">Retry</button>
+  </div>
+
+  <iframe id="frame" title="admin-7.html" sandbox="allow-scripts allow-forms allow-same-origin allow-popups allow-modals"></iframe>
+
+<script>
+(function () {
+  "use strict";
+
+  var SOURCE_PATH = "./admin-7.html";
+
+  var statusEl = document.getElementById("status");
+  var statusText = document.getElementById("statusText");
+  var errorBox = document.getElementById("errorBox");
+  var errorMsg = document.getElementById("errorMsg");
+  var errorDetail = document.getElementById("errorDetail");
+  var retryBtn = document.getElementById("retryBtn");
+  var frame = document.getElementById("frame");
+
+  function showError(msg, detail) {
+    statusEl.className = "error";
+    statusText.textContent = "Failed to load";
+    errorMsg.textContent = msg;
+    errorDetail.textContent = detail || "";
+    errorBox.className = "show";
+    frame.style.display = "none";
+  }
+
+  function showOk() {
+    statusEl.className = "ok";
+    statusText.textContent = "Loaded admin-7.html";
+    setTimeout(function () {
+      statusEl.className = "hidden";
+      frame.className = "";
+    }, 700);
+  }
+
+  function load() {
+    errorBox.className = "";
+    frame.style.display = "";
+    frame.className = "with-status";
+    statusEl.className = "";
+    statusText.textContent = "Loading admin-7.html…";
+
+    fetch(SOURCE_PATH, { cache: "no-store" })
+      .then(function (res) {
+        if (!res.ok) {
+          throw new Error("Request failed with status " + res.status + " " + res.statusText);
+        }
+        return res.text();
+      })
+      .then(function (html) {
+        // Write the fetched HTML content directly into the iframe so it
+        // executes and renders exactly as it would if opened on its own.
+        frame.srcdoc = html;
+        frame.onload = function () {
+          showOk();
+        };
+      })
+      .catch(function (err) {
+        showError(
+          "Could not fetch \"" + SOURCE_PATH + "\". Make sure admin-7.html is in the " +
+          "same folder as proxy.html and that you're serving both over http(s) " +
+          "(opening proxy.html directly via file:// will block this fetch in most browsers).",
+          err.message
+        );
+      });
+  }
+
+  retryBtn.addEventListener("click", load);
+
+  load();
+})();
+</script>
+
+</body>
+</html>
